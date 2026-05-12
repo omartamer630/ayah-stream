@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiZipRouteImport } from './routes/api/zip'
+import { Route as ApiMergedRouteImport } from './routes/api/merged'
 import { Route as ApiSurahIdRouteImport } from './routes/api/surah.$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -23,6 +24,11 @@ const ApiZipRoute = ApiZipRouteImport.update({
   path: '/api/zip',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiMergedRoute = ApiMergedRouteImport.update({
+  id: '/api/merged',
+  path: '/api/merged',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiSurahIdRoute = ApiSurahIdRouteImport.update({
   id: '/api/surah/$id',
   path: '/api/surah/$id',
@@ -31,30 +37,34 @@ const ApiSurahIdRoute = ApiSurahIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/api/merged': typeof ApiMergedRoute
   '/api/zip': typeof ApiZipRoute
   '/api/surah/$id': typeof ApiSurahIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/api/merged': typeof ApiMergedRoute
   '/api/zip': typeof ApiZipRoute
   '/api/surah/$id': typeof ApiSurahIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/api/merged': typeof ApiMergedRoute
   '/api/zip': typeof ApiZipRoute
   '/api/surah/$id': typeof ApiSurahIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/zip' | '/api/surah/$id'
+  fullPaths: '/' | '/api/merged' | '/api/zip' | '/api/surah/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/zip' | '/api/surah/$id'
-  id: '__root__' | '/' | '/api/zip' | '/api/surah/$id'
+  to: '/' | '/api/merged' | '/api/zip' | '/api/surah/$id'
+  id: '__root__' | '/' | '/api/merged' | '/api/zip' | '/api/surah/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ApiMergedRoute: typeof ApiMergedRoute
   ApiZipRoute: typeof ApiZipRoute
   ApiSurahIdRoute: typeof ApiSurahIdRoute
 }
@@ -75,6 +85,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiZipRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/merged': {
+      id: '/api/merged'
+      path: '/api/merged'
+      fullPath: '/api/merged'
+      preLoaderRoute: typeof ApiMergedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/surah/$id': {
       id: '/api/surah/$id'
       path: '/api/surah/$id'
@@ -87,9 +104,20 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ApiMergedRoute: ApiMergedRoute,
   ApiZipRoute: ApiZipRoute,
   ApiSurahIdRoute: ApiSurahIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
