@@ -74,14 +74,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { title: "Quran" },
+      { name: "description", content: "A focused web application designed to support Quran memorization (Hifz) by making it easy to access, repeat, and isolate specific Ayahs from any Surah. The syst" },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "Quran" },
+      { property: "og:description", content: "A focused web application designed to support Quran memorization (Hifz) by making it easy to access, repeat, and isolate specific Ayahs from any Surah. The syst" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "Quran" },
+      { name: "twitter:description", content: "A focused web application designed to support Quran memorization (Hifz) by making it easy to access, repeat, and isolate specific Ayahs from any Surah. The syst" },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/25af0e28-bd3b-4b34-8cf7-7c3fb89dcab9/id-preview-b895522b--e03c81ce-0ad4-4135-b7ef-cd8b37166404.lovable.app-1778614748708.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/25af0e28-bd3b-4b34-8cf7-7c3fb89dcab9/id-preview-b895522b--e03c81ce-0ad4-4135-b7ef-cd8b37166404.lovable.app-1778614748708.png" },
     ],
     links: [
       {
