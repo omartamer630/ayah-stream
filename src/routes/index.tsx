@@ -372,7 +372,17 @@ function Index() {
                           audioRefs.current[mergedIdx] = el;
                         }}
                         src={mergedSrc}
-                        onEnded={() => setPlayingIdx(null)}
+                        onEnded={() => {
+                          if (playMode === "one" || playMode === "all") {
+                            const el = audioRefs.current[mergedIdx];
+                            if (el) {
+                              el.currentTime = 0;
+                              el.play();
+                              return;
+                            }
+                          }
+                          setPlayingIdx(null);
+                        }}
                         controls
                         preload="none"
                         className="w-full mt-1 h-8"
