@@ -10,33 +10,53 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiZipRouteImport } from './routes/api/zip'
+import { Route as ApiSurahIdRouteImport } from './routes/api/surah.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiZipRoute = ApiZipRouteImport.update({
+  id: '/api/zip',
+  path: '/api/zip',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSurahIdRoute = ApiSurahIdRouteImport.update({
+  id: '/api/surah/$id',
+  path: '/api/surah/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/api/zip': typeof ApiZipRoute
+  '/api/surah/$id': typeof ApiSurahIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/api/zip': typeof ApiZipRoute
+  '/api/surah/$id': typeof ApiSurahIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/api/zip': typeof ApiZipRoute
+  '/api/surah/$id': typeof ApiSurahIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/api/zip' | '/api/surah/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/api/zip' | '/api/surah/$id'
+  id: '__root__' | '/' | '/api/zip' | '/api/surah/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ApiZipRoute: typeof ApiZipRoute
+  ApiSurahIdRoute: typeof ApiSurahIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,22 +68,28 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/zip': {
+      id: '/api/zip'
+      path: '/api/zip'
+      fullPath: '/api/zip'
+      preLoaderRoute: typeof ApiZipRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/surah/$id': {
+      id: '/api/surah/$id'
+      path: '/api/surah/$id'
+      fullPath: '/api/surah/$id'
+      preLoaderRoute: typeof ApiSurahIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ApiZipRoute: ApiZipRoute,
+  ApiSurahIdRoute: ApiSurahIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
