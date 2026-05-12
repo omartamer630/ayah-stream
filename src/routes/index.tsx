@@ -264,9 +264,29 @@ function Index() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="max-h-80">
-                  {RECITERS.map((r) => (
-                    <SelectItem key={r.id} value={r.id}>
-                      <span>{r.name}</span>
+                  {sortedReciters.favs.length > 0 && (
+                    <>
+                      <div className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                        <Star className="w-3 h-3 fill-[var(--gold)] text-[var(--gold)]" />
+                        Favorites
+                      </div>
+                      {sortedReciters.favs.map((r) => (
+                        <SelectItem key={`fav-${r.id}`} value={r.id} className="pr-10">
+                          <span className="truncate">{r.name}</span>
+                          {r.bitrate && (
+                            <span className="text-muted-foreground ml-2 text-xs">· {r.bitrate}</span>
+                          )}
+                        </SelectItem>
+                      ))}
+                      <div className="my-1 border-t border-border" />
+                      <div className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                        All reciters
+                      </div>
+                    </>
+                  )}
+                  {sortedReciters.rest.map((r) => (
+                    <SelectItem key={r.id} value={r.id} className="pr-10">
+                      <span className="truncate">{r.name}</span>
                       {r.bitrate && (
                         <span className="text-muted-foreground ml-2 text-xs">· {r.bitrate}</span>
                       )}
@@ -274,6 +294,22 @@ function Index() {
                   ))}
                 </SelectContent>
               </Select>
+              {/* Favorite toggle for current reciter */}
+              <button
+                type="button"
+                onClick={() => toggleFavorite(reciter)}
+                className="mt-2 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                aria-label={favorites.includes(reciter) ? "Remove from favorites" : "Add to favorites"}
+              >
+                <Star
+                  className={`w-3.5 h-3.5 transition-colors ${
+                    favorites.includes(reciter)
+                      ? "fill-[var(--gold)] text-[var(--gold)]"
+                      : "text-muted-foreground"
+                  }`}
+                />
+                {favorites.includes(reciter) ? "Favorited" : "Add to favorites"}
+              </button>
             </div>
           </div>
 
@@ -291,17 +327,17 @@ function Index() {
                 onClick={fetchAyahs}
                 disabled={loading}
                 size="lg"
-                className="bg-[var(--gradient-hero)] hover:opacity-90 hover:shadow-[var(--shadow-glow)] active:scale-[0.98] text-primary-foreground shadow-[var(--shadow-soft)] px-6 font-medium transition-all"
+                className="bg-[var(--gradient-hero)] hover:opacity-95 hover:shadow-[var(--shadow-glow)] active:scale-[0.98] text-primary-foreground shadow-[var(--shadow-soft)] font-semibold transition-all"
               >
                 {loading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Loading…</span>
+                    Loading…
                   </>
                 ) : (
                   <>
-                    <BookOpen className="w-4 h-4" />
-                    <span>Load ayahs</span>
+                    <ListMusic className="w-4 h-4" />
+                    Load ayahs
                   </>
                 )}
               </Button>
@@ -317,7 +353,7 @@ function Index() {
                 ) : (
                   <Package className="w-4 h-4" />
                 )}
-                <span>Download ZIP</span>
+                Download ZIP
               </Button>
             </div>
           </div>
