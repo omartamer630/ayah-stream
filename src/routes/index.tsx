@@ -260,27 +260,38 @@ function Index() {
                 {end - start + 1} ayah{end - start + 1 !== 1 ? "s" : ""}
               </span>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               <Button
                 onClick={fetchAyahs}
                 disabled={loading}
                 size="lg"
-                className="bg-[var(--gradient-hero)] hover:opacity-90 text-primary-foreground shadow-[var(--shadow-soft)]"
+                className="bg-[var(--gradient-hero)] hover:opacity-90 hover:shadow-[var(--shadow-glow)] active:scale-[0.98] text-primary-foreground shadow-[var(--shadow-soft)] px-6 font-medium transition-all"
               >
-                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Load ayahs"}
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Loading…</span>
+                  </>
+                ) : (
+                  <>
+                    <BookOpen className="w-4 h-4" />
+                    <span>Load ayahs</span>
+                  </>
+                )}
               </Button>
               <Button
                 onClick={downloadZip}
                 disabled={zipping || ayahs.length === 0}
                 size="lg"
                 variant="outline"
+                className="active:scale-[0.98] transition-all"
               >
                 {zipping ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
                   <Package className="w-4 h-4" />
                 )}
-                Download ZIP
+                <span>Download ZIP</span>
               </Button>
             </div>
           </div>
