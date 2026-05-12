@@ -287,6 +287,81 @@ function Index() {
             </div>
 
             <ul className="space-y-2">
+              {ayahs.length > 1 && (() => {
+                const rangeStart = ayahs[0].ayah;
+                const rangeEnd = ayahs[ayahs.length - 1].ayah;
+                const mergedSrc = `/api/merged?surah=${surahNum}&start=${rangeStart}&end=${rangeEnd}&reciter=${reciter}`;
+                const mergedIdx = -1;
+                const isPlaying = playingIdx === mergedIdx;
+                return (
+                  <li
+                    className={`group flex items-center gap-4 rounded-xl border-2 px-4 py-3 transition-all hover:shadow-[var(--shadow-soft)] bg-[var(--gradient-surface)] ${
+                      isPlaying ? "border-primary/50 shadow-[var(--shadow-soft)]" : "border-[var(--gold)]/40"
+                    }`}
+                  >
+                    <button
+                      onClick={() => {
+                        const el = audioRefs.current[mergedIdx];
+                        if (!el) return;
+                        if (isPlaying && !el.paused) {
+                          el.pause();
+                          setPlayingIdx(null);
+                        } else {
+                          audioRefs.current.forEach((a, i) => {
+                            if (a && i !== mergedIdx) a.pause();
+                          });
+                          el.play();
+                          setPlayingIdx(mergedIdx);
+                        }
+                      }}
+                      className={`w-11 h-11 rounded-full flex items-center justify-center transition-all shrink-0 ${
+                        isPlaying
+                          ? "bg-[var(--gradient-hero)] text-primary-foreground shadow-[var(--shadow-glow)]"
+                          : "bg-[var(--gold)] text-[var(--gold-foreground)] hover:opacity-90"
+                      }`}
+                      aria-label={isPlaying ? "Pause merged" : "Play merged"}
+                    >
+                      {isPlaying ? (
+                        <Pause className="w-5 h-5" fill="currentColor" />
+                      ) : (
+                        <Play className="w-5 h-5 ml-0.5" fill="currentColor" />
+                      )}
+                    </button>
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-baseline gap-3">
+                        <span className="text-xs uppercase tracking-wider text-[var(--gold-foreground)]/70 font-semibold">
+                          Full range
+                        </span>
+                        <span className="text-lg font-semibold tabular-nums">
+                          {rangeStart}–{rangeEnd}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          ({rangeEnd - rangeStart + 1} ayahs merged)
+                        </span>
+                      </div>
+                      <audio
+                        ref={(el) => {
+                          audioRefs.current[mergedIdx] = el;
+                        }}
+                        src={mergedSrc}
+                        onEnded={() => setPlayingIdx(null)}
+                        controls
+                        preload="none"
+                        className="w-full mt-1 h-8"
+                      />
+                    </div>
+
+                    <a
+                      href={`${mergedSrc}&download=1`}
+                      className="shrink-0 w-10 h-10 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                      aria-label="Download merged audio"
+                    >
+                      <Download className="w-4 h-4" />
+                    </a>
+                  </li>
+                );
+              })()}
               {ayahs.map((a, idx) => {
                 const isPlaying = playingIdx === idx;
                 return (
