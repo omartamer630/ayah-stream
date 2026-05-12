@@ -41,7 +41,7 @@ function Index() {
   const [ayahs, setAyahs] = useState<AyahItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [zipping, setZipping] = useState(false);
-  const [autoplay, setAutoplay] = useState(true);
+  const [playMode, setPlayMode] = useState<"off" | "next" | "one" | "all">("next");
   const [playingIdx, setPlayingIdx] = useState<number | null>(null);
   const audioRefs = useRef<Array<HTMLAudioElement | null>>([]);
 
@@ -107,11 +107,23 @@ function Index() {
   };
 
   const handleEnded = (idx: number) => {
-    if (autoplay && idx + 1 < ayahs.length) {
-      playIdx(idx + 1);
-    } else {
-      setPlayingIdx(null);
+    if (playMode === "one") {
+      const el = audioRefs.current[idx];
+      if (el) {
+        el.currentTime = 0;
+        el.play();
+      }
+      return;
     }
+    if (idx + 1 < ayahs.length && (playMode === "next" || playMode === "all")) {
+      playIdx(idx + 1);
+      return;
+    }
+    if (playMode === "all" && ayahs.length > 0) {
+      playIdx(0);
+      return;
+    }
+    setPlayingIdx(null);
   };
 
   const downloadZip = async () => {
@@ -277,15 +289,28 @@ function Index() {
               <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
                 {surah.a} · {ayahs[0].ayah}–{ayahs[ayahs.length - 1].ayah}
               </h3>
-              <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={autoplay}
-                  onChange={(e) => setAutoplay(e.target.checked)}
-                  className="accent-primary"
-                />
-                Autoplay next
-              </label>
+              <div className="flex items-center gap-1 rounded-lg border border-border bg-card p-1 text-xs">
+                {(
+                  [
+                    { v: "off", label: "Off" },
+                    { v: "next", label: "Next" },
+                    { v: "one", label: "Repeat 1" },
+                    { v: "all", label: "Repeat all" },
+                  ] as const
+                ).map((opt) => (
+                  <button
+                    key={opt.v}
+                    onClick={() => setPlayMode(opt.v)}
+                    className={`px-2.5 py-1 rounded-md transition-colors ${
+                      playMode === opt.v
+                        ? "bg-[var(--gradient-hero)] text-primary-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <ul className="space-y-2">
@@ -347,7 +372,17 @@ function Index() {
                           audioRefs.current[mergedIdx] = el;
                         }}
                         src={mergedSrc}
-                        onEnded={() => setPlayingIdx(null)}
+                        onEnded={() => {
+                          if (playMode === "one" || playMode === "all") {
+                            const el = audioRefs.current[mergedIdx];
+                            if (el) {
+                              el.currentTime = 0;
+                              el.play();
+                              return;
+                            }
+                          }
+                          setPlayingIdx(null);
+                        }}
                         controls
                         preload="none"
                         className="w-full mt-1 h-8"
