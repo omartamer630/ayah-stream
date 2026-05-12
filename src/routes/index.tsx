@@ -43,7 +43,33 @@ function Index() {
   const [zipping, setZipping] = useState(false);
   const [playMode, setPlayMode] = useState<"off" | "next" | "one" | "all">("next");
   const [playingIdx, setPlayingIdx] = useState<number | null>(null);
+  const [favorites, setFavorites] = useState<string[]>([]);
   const audioRefs = useRef<Array<HTMLAudioElement | null>>([]);
+
+  // Load favorites from localStorage
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("quran-fav-reciters");
+      if (raw) setFavorites(JSON.parse(raw));
+    } catch {}
+  }, []);
+
+  const toggleFavorite = (id: string) => {
+    setFavorites((prev) => {
+      const next = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
+      try {
+        localStorage.setItem("quran-fav-reciters", JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  };
+
+  const sortedReciters = useMemo(() => {
+    const favSet = new Set(favorites);
+    const favs = RECITERS.filter((r) => favSet.has(r.id));
+    const rest = RECITERS.filter((r) => !favSet.has(r.id));
+    return { favs, rest };
+  }, [favorites]);
 
   const surah = useMemo(() => SURAHS.find((s) => s.n === surahNum)!, [surahNum]);
 
