@@ -237,10 +237,13 @@ function Index() {
                 <SelectTrigger className="h-12">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-h-80">
                   {RECITERS.map((r) => (
                     <SelectItem key={r.id} value={r.id}>
-                      {r.name}
+                      <span>{r.name}</span>
+                      {r.bitrate && (
+                        <span className="text-muted-foreground ml-2 text-xs">· {r.bitrate}</span>
+                      )}
                     </SelectItem>
                   ))}
                 </SelectContent>
