@@ -87,6 +87,8 @@ function Index() {
     audioRefs.current.forEach((a, i) => {
       if (a && i !== idx) a.pause();
     });
+    const merged = audioRefs.current[-1];
+    if (merged && idx !== -1) merged.pause();
     const el = audioRefs.current[idx];
     if (!el) return;
     el.play();
