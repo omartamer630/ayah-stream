@@ -270,15 +270,48 @@ function Index() {
         <section className="relative bg-secondary border border-border rounded-3xl p-6 md:p-8 shadow-[var(--shadow-soft)] mb-10">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mb-8">
             <div className="md:col-span-5 space-y-2.5">
-              <Label className="block text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
-                Surah
-              </Label>
+              <div className="flex justify-between items-end">
+                <Label className="block text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
+                  Surah
+                </Label>
+                <button
+                  type="button"
+                  onClick={() => toggleFavSurah(surahNum)}
+                  aria-label={favSurahs.includes(surahNum) ? "Remove favorite surah" : "Add favorite surah"}
+                  className="text-[var(--gold)] hover:text-[var(--gold)]/80 transition-colors"
+                >
+                  <Star
+                    className={`w-4 h-4 ${favSurahs.includes(surahNum) ? "fill-[var(--gold)]" : ""}`}
+                  />
+                </button>
+              </div>
               <Select value={String(surahNum)} onValueChange={(v) => setSurahNum(Number(v))}>
                 <SelectTrigger className="h-12 bg-card border-border rounded-xl focus:ring-2 focus:ring-[var(--gold)]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="max-h-80">
-                  {SURAHS.map((s) => (
+                  {sortedSurahs.favs.length > 0 && (
+                    <>
+                      <div className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground flex items-center gap-1.5">
+                        <Star className="w-3 h-3 fill-[var(--gold)] text-[var(--gold)]" />
+                        Favorites
+                      </div>
+                      {sortedSurahs.favs.map((s) => (
+                        <SelectItem key={`fav-${s.n}`} value={String(s.n)}>
+                          <span className="tabular-nums text-muted-foreground mr-2">
+                            {String(s.n).padStart(3, "0")}
+                          </span>
+                          {s.a}
+                          <span className="text-muted-foreground ml-2">· {s.c} ayahs</span>
+                        </SelectItem>
+                      ))}
+                      <div className="my-1 border-t border-border" />
+                      <div className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
+                        All surahs
+                      </div>
+                    </>
+                  )}
+                  {sortedSurahs.rest.map((s) => (
                     <SelectItem key={s.n} value={String(s.n)}>
                       <span className="tabular-nums text-muted-foreground mr-2">
                         {String(s.n).padStart(3, "0")}
