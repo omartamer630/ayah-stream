@@ -50,8 +50,19 @@ function Index() {
     try {
       const raw = localStorage.getItem("quran-fav-reciters");
       if (raw) setFavorites(JSON.parse(raw));
+      const lastReciter = localStorage.getItem("quran-last-reciter");
+      if (lastReciter && RECITERS.some((r) => r.id === lastReciter)) {
+        setReciter(lastReciter as ReciterId);
+      }
     } catch {}
   }, []);
+
+  // Persist reciter selection
+  useEffect(() => {
+    try {
+      localStorage.setItem("quran-last-reciter", reciter);
+    } catch {}
+  }, [reciter]);
 
   const toggleFavorite = (id: string) => {
     setFavorites((prev) => {
