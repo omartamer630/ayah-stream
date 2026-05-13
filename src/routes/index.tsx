@@ -499,12 +499,11 @@ function Index() {
                         </div>
                         <div className="flex-1 p-5 md:p-7 min-w-0">
                           <div
-                            className="text-3xl md:text-4xl text-right leading-[1.9] text-foreground mb-5"
+                            className="text-right text-2xl md:text-3xl text-muted-foreground/80 mb-5"
                             dir="rtl"
                             style={{ fontFamily: "var(--font-arabic)" }}
                           >
-                            {surah.ar}{" "}
-                            <span className="text-[var(--gold)] text-2xl">﴿{a.ayah}﴾</span>
+                            <span className="text-[var(--gold)]">﴿{a.ayah}﴾</span>
                           </div>
                           <div className="flex items-center gap-4">
                             <button
