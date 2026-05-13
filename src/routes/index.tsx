@@ -495,12 +495,9 @@ function Index() {
                       </button>
 
                       <div className="flex-1 w-full space-y-3 min-w-0">
-                        <div className="flex justify-between text-[var(--gold)] text-[10px] uppercase font-bold tracking-[0.2em]">
+                        <div className="flex text-[var(--gold)] text-[10px] uppercase font-bold tracking-[0.2em]">
                           <span>
                             Full range · {rangeStart}–{rangeEnd}
-                          </span>
-                          <span className="hidden sm:inline">
-                            {rangeEnd - rangeStart + 1} ayahs merged
                           </span>
                         </div>
                         <audio
