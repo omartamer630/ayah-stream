@@ -38,7 +38,9 @@
   --color-primary-glow: var(--primary-glow);
   --color-gold: var(--gold);
   --color-gold-foreground: var(--gold-foreground);
-  --font-display: "Georgia", "Cormorant Garamond", serif;
+  --font-display: "Cinzel", "Georgia", serif;
+  --font-arabic: "Amiri", "Scheherazade", serif;
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
