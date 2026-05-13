@@ -44,25 +44,67 @@ function Index() {
   const [playMode, setPlayMode] = useState<"off" | "next" | "one" | "all">("next");
   const [playingIdx, setPlayingIdx] = useState<number | null>(null);
   const [favorites, setFavorites] = useState<string[]>([]);
+  const [favSurahs, setFavSurahs] = useState<number[]>([]);
+  const [hydrated, setHydrated] = useState(false);
   const audioRefs = useRef<Array<HTMLAudioElement | null>>([]);
 
+  // Hydrate from localStorage on mount
   useEffect(() => {
     try {
       const raw = localStorage.getItem("quran-fav-reciters");
       if (raw) setFavorites(JSON.parse(raw));
+      const rawSurahs = localStorage.getItem("quran-fav-surahs");
+      if (rawSurahs) setFavSurahs(JSON.parse(rawSurahs));
       const lastReciter = localStorage.getItem("quran-last-reciter");
-      if (lastReciter && RECITERS.some((r) => r.id === lastReciter)) {
-        setReciter(lastReciter as ReciterId);
+      const lastSurah = localStorage.getItem("quran-last-surah");
+      const lastStart = localStorage.getItem("quran-last-start");
+      const lastEnd = localStorage.getItem("quran-last-end");
+
+      let s = 1;
+      let st = 1;
+      let en = 7;
+      let rec: ReciterId = "Alafasy_128kbps";
+      if (lastSurah) {
+        const n = Number(lastSurah);
+        const found = SURAHS.find((x) => x.n === n);
+        if (found) {
+          s = found.n;
+          en = Math.min(found.c, 7);
+        }
       }
+      if (lastStart) st = Math.max(1, Number(lastStart));
+      if (lastEnd) en = Number(lastEnd);
+      if (lastReciter && RECITERS.some((r) => r.id === lastReciter)) {
+        rec = lastReciter as ReciterId;
+      }
+      const surahDef = SURAHS.find((x) => x.n === s)!;
+      st = Math.min(Math.max(1, st), surahDef.c);
+      en = Math.min(Math.max(st, en), surahDef.c);
+
+      setSurahNum(s);
+      setStart(st);
+      setEnd(en);
+      setReciter(rec);
+      setAyahs(
+        Array.from({ length: en - st + 1 }, (_, i) => ({
+          ayah: st + i,
+          audioUrl: ayahAudioUrl(rec, s, st + i),
+        })),
+      );
     } catch {}
+    setHydrated(true);
   }, []);
 
-  // Persist reciter selection
+  // Persist selections
   useEffect(() => {
+    if (!hydrated) return;
     try {
       localStorage.setItem("quran-last-reciter", reciter);
+      localStorage.setItem("quran-last-surah", String(surahNum));
+      localStorage.setItem("quran-last-start", String(start));
+      localStorage.setItem("quran-last-end", String(end));
     } catch {}
-  }, [reciter]);
+  }, [reciter, surahNum, start, end, hydrated]);
 
   const toggleFavorite = (id: string) => {
     setFavorites((prev) => {
@@ -74,12 +116,29 @@ function Index() {
     });
   };
 
+  const toggleFavSurah = (n: number) => {
+    setFavSurahs((prev) => {
+      const next = prev.includes(n) ? prev.filter((x) => x !== n) : [...prev, n];
+      try {
+        localStorage.setItem("quran-fav-surahs", JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  };
+
   const sortedReciters = useMemo(() => {
     const favSet = new Set(favorites);
     const favs = RECITERS.filter((r) => favSet.has(r.id));
     const rest = RECITERS.filter((r) => !favSet.has(r.id));
     return { favs, rest };
   }, [favorites]);
+
+  const sortedSurahs = useMemo(() => {
+    const favSet = new Set(favSurahs);
+    const favs = SURAHS.filter((s) => favSet.has(s.n));
+    const rest = SURAHS.filter((s) => !favSet.has(s.n));
+    return { favs, rest };
+  }, [favSurahs]);
 
   const surah = useMemo(() => SURAHS.find((s) => s.n === surahNum)!, [surahNum]);
 
@@ -108,15 +167,6 @@ function Index() {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    setAyahs(
-      Array.from({ length: 7 }, (_, i) => ({
-        ayah: i + 1,
-        audioUrl: ayahAudioUrl("Alafasy_128kbps", 1, i + 1),
-      })),
-    );
-  }, []);
 
   const playIdx = (idx: number) => {
     audioRefs.current.forEach((a, i) => {
