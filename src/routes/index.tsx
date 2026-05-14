@@ -627,10 +627,10 @@ function Index() {
                         <div className="flex bg-white/5 p-1 rounded-xl">
                           {(
                             [
-                              { v: "off", label: "Off" },
-                              { v: "next", label: "Next" },
-                              { v: "one", label: "One" },
-                              { v: "all", label: "All" },
+                              { v: "off", label: t("Off", "إيقاف") },
+                              { v: "next", label: t("Next", "التالية") },
+                              { v: "one", label: t("One", "تكرار") },
+                              { v: "all", label: t("All", "الكل") },
                             ] as const
                           ).map((opt) => (
                             <button
