@@ -266,6 +266,19 @@ function Index() {
             </p>
           </div>
         </div>
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={toggleTheme}
+          aria-label="Toggle theme"
+          className="rounded-full border-border/60"
+        >
+          {theme === "dark" ? (
+            <Sun className="w-4 h-4 text-[var(--gold)]" />
+          ) : (
+            <Moon className="w-4 h-4" />
+          )}
+        </Button>
       </header>
 
       <main className="max-w-5xl mx-auto px-6 pb-24">
