@@ -686,9 +686,9 @@ function Index() {
                       <div className="flex items-stretch">
                         <div
                           className="w-14 md:w-16 bg-secondary border-r border-border flex items-center justify-center text-muted-foreground text-lg shrink-0"
-                          style={{ fontFamily: "var(--font-display)" }}
+                          style={{ fontFamily: isAr ? "var(--font-arabic)" : "var(--font-display)" }}
                         >
-                          {a.ayah}
+                          {num(a.ayah)}
                         </div>
                         <div className="flex-1 p-5 md:p-7 min-w-0">
                           <div
@@ -696,7 +696,7 @@ function Index() {
                             dir="rtl"
                             style={{ fontFamily: "var(--font-arabic)" }}
                           >
-                            <span className="text-[var(--gold)]">﴿{a.ayah}﴾</span>
+                            <span className="text-[var(--gold)]">﴿{arabicDigits(a.ayah)}﴾</span>
                           </div>
                           <div className="flex items-center gap-4">
                             <button
