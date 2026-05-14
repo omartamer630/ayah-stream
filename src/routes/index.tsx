@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Download, Pause, Play, Loader2, Package, Star, BookOpenText, Moon, Sun } from "lucide-react";
+import { Download, Pause, Play, Loader2, Package, Star, BookOpenText, Moon, Sun, Languages } from "lucide-react";
 import { SURAHS, RECITERS, ayahAudioUrl, type ReciterId } from "@/lib/quran";
 import { Button } from "@/components/ui/button";
 import {
@@ -66,6 +66,28 @@ function Index() {
     document.documentElement.classList.toggle("dark", next === "dark");
     localStorage.setItem("quran-theme", next);
   };
+
+  // Language (en | ar) — controls UI strings + RTL direction
+  const [lang, setLang] = useState<"en" | "ar">("en");
+  useEffect(() => {
+    const stored = localStorage.getItem("quran-lang");
+    const initial: "en" | "ar" = stored === "ar" ? "ar" : "en";
+    setLang(initial);
+    document.documentElement.setAttribute("lang", initial);
+    document.documentElement.setAttribute("dir", initial === "ar" ? "rtl" : "ltr");
+  }, []);
+  const toggleLang = () => {
+    const next = lang === "ar" ? "en" : "ar";
+    setLang(next);
+    document.documentElement.setAttribute("lang", next);
+    document.documentElement.setAttribute("dir", next === "ar" ? "rtl" : "ltr");
+    localStorage.setItem("quran-lang", next);
+  };
+  const isAr = lang === "ar";
+  const t = (en: string, ar: string) => (isAr ? ar : en);
+  const arabicDigits = (n: number | string) =>
+    String(n).replace(/\d/g, (d) => "٠١٢٣٤٥٦٧٨٩"[Number(d)]);
+  const num = (n: number | string) => (isAr ? arabicDigits(n) : String(n));
 
   // Hydrate from localStorage on mount
   useEffect(() => {
@@ -257,28 +279,46 @@ function Index() {
           <div>
             <h1
               className="font-semibold text-base tracking-[0.25em] uppercase"
-              style={{ fontFamily: "var(--font-display)" }}
+              style={{ fontFamily: isAr ? "var(--font-arabic)" : "var(--font-display)" }}
             >
-              Quran Audio
+              {t("Quran Audio", "صوتيات القرآن")}
             </h1>
-            <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mt-1">
-              Surah &amp; Ayah range player
+            <p
+              className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mt-1"
+              style={isAr ? { fontFamily: "var(--font-arabic)", letterSpacing: 0 } : undefined}
+            >
+              {t("Surah & Ayah range player", "مشغّل السور والآيات")}
             </p>
           </div>
         </div>
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={toggleTheme}
-          aria-label="Toggle theme"
-          className="rounded-full border-border/60"
-        >
-          {theme === "dark" ? (
-            <Sun className="w-4 h-4 text-[var(--gold)]" />
-          ) : (
-            <Moon className="w-4 h-4" />
-          )}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={toggleLang}
+            aria-label="Toggle language"
+            title={isAr ? "English" : "العربية"}
+            className="rounded-full border-border/60 gap-1 w-auto px-3"
+          >
+            <Languages className="w-4 h-4" />
+            <span className="text-[10px] font-bold uppercase tracking-wider">
+              {isAr ? "EN" : "ع"}
+            </span>
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={toggleTheme}
+            aria-label="Toggle theme"
+            className="rounded-full border-border/60"
+          >
+            {theme === "dark" ? (
+              <Sun className="w-4 h-4 text-[var(--gold)]" />
+            ) : (
+              <Moon className="w-4 h-4" />
+            )}
+          </Button>
+        </div>
       </header>
 
       <main className="max-w-5xl mx-auto px-6 pb-24">
@@ -286,15 +326,30 @@ function Index() {
         <section className="mb-14">
           <h2
             className="text-5xl md:text-6xl mb-6 leading-[1.05] text-foreground"
-            style={{ fontFamily: "var(--font-display)" }}
+            style={{ fontFamily: isAr ? "var(--font-arabic)" : "var(--font-display)" }}
           >
-            Listen and
-            <br />
-            <span className="italic font-normal text-foreground/90">download</span>
+            {isAr ? (
+              <>
+                استمع
+                <br />
+                <span className="font-normal text-foreground/90">وحمّل</span>
+              </>
+            ) : (
+              <>
+                Listen and
+                <br />
+                <span className="italic font-normal text-foreground/90">download</span>
+              </>
+            )}
           </h2>
-          <p className="max-w-xl text-muted-foreground leading-relaxed">
-            Choose a Surah, pick a range, and play or download individual MP3s — or grab the full
-            range as a ZIP.
+          <p
+            className="max-w-xl text-muted-foreground leading-relaxed"
+            style={isAr ? { fontFamily: "var(--font-arabic)", fontSize: "1.125rem" } : undefined}
+          >
+            {t(
+              "Choose a Surah, pick a range, and play or download individual MP3s — or grab the full range as a ZIP.",
+              "اختر سورة وحدّد نطاق الآيات، ثم استمع أو حمّل كل آية على حدة، أو احصل على النطاق كاملًا في ملف مضغوط.",
+            )}
           </p>
         </section>
 
@@ -304,7 +359,7 @@ function Index() {
             <div className="md:col-span-5 space-y-2.5">
               <div className="flex justify-between items-end">
                 <Label className="block text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
-                  Surah
+                  {t("Surah", "السورة")}
                 </Label>
                 <button
                   type="button"
@@ -326,30 +381,42 @@ function Index() {
                     <>
                       <div className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground flex items-center gap-1.5">
                         <Star className="w-3 h-3 fill-[var(--gold)] text-[var(--gold)]" />
-                        Favorites
+                        {t("Favorites", "المفضّلة")}
                       </div>
                       {sortedSurahs.favs.map((s) => (
                         <SelectItem key={`fav-${s.n}`} value={String(s.n)}>
                           <span className="tabular-nums text-muted-foreground mr-2">
-                            {String(s.n).padStart(3, "0")}
+                            {num(String(s.n).padStart(3, "0"))}
                           </span>
-                          {s.a}
-                          <span className="text-muted-foreground ml-2">· {s.c} ayahs</span>
+                          {isAr ? (
+                            <span style={{ fontFamily: "var(--font-arabic)" }}>{s.ar}</span>
+                          ) : (
+                            s.a
+                          )}
+                          <span className="text-muted-foreground ml-2">
+                            · {num(s.c)} {t("ayahs", "آية")}
+                          </span>
                         </SelectItem>
                       ))}
                       <div className="my-1 border-t border-border" />
                       <div className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
-                        All surahs
+                        {t("All surahs", "جميع السور")}
                       </div>
                     </>
                   )}
                   {sortedSurahs.rest.map((s) => (
                     <SelectItem key={s.n} value={String(s.n)}>
                       <span className="tabular-nums text-muted-foreground mr-2">
-                        {String(s.n).padStart(3, "0")}
+                        {num(String(s.n).padStart(3, "0"))}
                       </span>
-                      {s.a}
-                      <span className="text-muted-foreground ml-2">· {s.c} ayahs</span>
+                      {isAr ? (
+                        <span style={{ fontFamily: "var(--font-arabic)" }}>{s.ar}</span>
+                      ) : (
+                        s.a
+                      )}
+                      <span className="text-muted-foreground ml-2">
+                        · {num(s.c)} {t("ayahs", "آية")}
+                      </span>
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -358,7 +425,7 @@ function Index() {
 
             <div className="md:col-span-2 space-y-2.5">
               <Label className="block text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
-                From
+                {t("From", "من")}
               </Label>
               <Input
                 type="number"
@@ -372,7 +439,7 @@ function Index() {
 
             <div className="md:col-span-2 space-y-2.5">
               <Label className="block text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
-                To
+                {t("To", "إلى")}
               </Label>
               <Input
                 type="number"
@@ -387,7 +454,7 @@ function Index() {
             <div className="md:col-span-3 space-y-2.5">
               <div className="flex justify-between items-end">
                 <Label className="block text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
-                  Reciter
+                  {t("Reciter", "القارئ")}
                 </Label>
                 <button
                   type="button"
@@ -411,7 +478,7 @@ function Index() {
                     <>
                       <div className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground flex items-center gap-1.5">
                         <Star className="w-3 h-3 fill-[var(--gold)] text-[var(--gold)]" />
-                        Favorites
+                        {t("Favorites", "المفضّلة")}
                       </div>
                       {sortedReciters.favs.map((r) => (
                         <SelectItem key={`fav-${r.id}`} value={r.id} className="pr-10">
@@ -423,7 +490,7 @@ function Index() {
                       ))}
                       <div className="my-1 border-t border-border" />
                       <div className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
-                        All reciters
+                        {t("All reciters", "جميع القرّاء")}
                       </div>
                     </>
                   )}
@@ -451,7 +518,9 @@ function Index() {
               </div>
               <div className="hidden md:block h-4 w-px bg-border" />
               <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
-                {end - start + 1} ayah{end - start + 1 !== 1 ? "s" : ""} loaded
+                {isAr
+                  ? `${num(end - start + 1)} آية محمّلة`
+                  : `${end - start + 1} ayah${end - start + 1 !== 1 ? "s" : ""} loaded`}
               </div>
             </div>
             <div className="flex gap-3 flex-wrap w-full md:w-auto">
@@ -464,10 +533,10 @@ function Index() {
                 {loading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Loading…
+                    {t("Loading…", "جارٍ التحميل…")}
                   </>
                 ) : (
-                  "Load Ayahs"
+                  t("Load Ayahs", "تحميل الآيات")
                 )}
               </Button>
               <Button
@@ -482,7 +551,7 @@ function Index() {
                 ) : (
                   <Package className="w-4 h-4" />
                 )}
-                Download ZIP
+                {t("Download ZIP", "تنزيل ZIP")}
               </Button>
             </div>
           </div>
@@ -529,7 +598,7 @@ function Index() {
                       <div className="flex-1 w-full space-y-3 min-w-0">
                         <div className="flex text-[var(--gold)] text-[10px] uppercase font-bold tracking-[0.2em]">
                           <span>
-                            Full range · {rangeStart}–{rangeEnd}
+                            {t("Full range", "النطاق الكامل")} · {num(rangeStart)}–{num(rangeEnd)}
                           </span>
                         </div>
                         <audio
@@ -558,10 +627,10 @@ function Index() {
                         <div className="flex bg-white/5 p-1 rounded-xl">
                           {(
                             [
-                              { v: "off", label: "Off" },
-                              { v: "next", label: "Next" },
-                              { v: "one", label: "One" },
-                              { v: "all", label: "All" },
+                              { v: "off", label: t("Off", "إيقاف") },
+                              { v: "next", label: t("Next", "التالية") },
+                              { v: "one", label: t("One", "تكرار") },
+                              { v: "all", label: t("All", "الكل") },
                             ] as const
                           ).map((opt) => (
                             <button
@@ -596,9 +665,10 @@ function Index() {
               <div className="mb-5 flex items-center gap-3">
                 <h3
                   className="text-xs font-bold uppercase tracking-[0.25em] text-muted-foreground"
-                  style={{ fontFamily: "var(--font-display)" }}
+                  style={{ fontFamily: isAr ? "var(--font-arabic)" : "var(--font-display)" }}
                 >
-                  {surah.a} · {ayahs[0].ayah}–{ayahs[ayahs.length - 1].ayah}
+                  {isAr ? surah.ar : surah.a} · {num(ayahs[0].ayah)}–
+                  {num(ayahs[ayahs.length - 1].ayah)}
                 </h3>
                 <div className="flex-1 h-px bg-border" />
               </div>
@@ -616,9 +686,9 @@ function Index() {
                       <div className="flex items-stretch">
                         <div
                           className="w-14 md:w-16 bg-secondary border-r border-border flex items-center justify-center text-muted-foreground text-lg shrink-0"
-                          style={{ fontFamily: "var(--font-display)" }}
+                          style={{ fontFamily: isAr ? "var(--font-arabic)" : "var(--font-display)" }}
                         >
-                          {a.ayah}
+                          {num(a.ayah)}
                         </div>
                         <div className="flex-1 p-5 md:p-7 min-w-0">
                           <div
@@ -626,7 +696,7 @@ function Index() {
                             dir="rtl"
                             style={{ fontFamily: "var(--font-arabic)" }}
                           >
-                            <span className="text-[var(--gold)]">﴿{a.ayah}﴾</span>
+                            <span className="text-[var(--gold)]">﴿{arabicDigits(a.ayah)}﴾</span>
                           </div>
                           <div className="flex items-center gap-4">
                             <button
@@ -675,11 +745,11 @@ function Index() {
 
         <footer className="mt-20 pt-10 border-t border-border text-center">
           <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
-            Audio courtesy of{" "}
+            {t("Audio courtesy of", "الصوت بإذن من")}{" "}
             <a href="https://everyayah.com" className="text-[var(--gold)] hover:underline">
               everyayah.com
             </a>{" "}
-            · Cached at the edge
+            · {t("Cached at the edge", "مخزّن على الحافة")}
           </p>
         </footer>
       </main>
