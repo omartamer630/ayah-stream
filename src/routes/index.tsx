@@ -67,6 +67,28 @@ function Index() {
     localStorage.setItem("quran-theme", next);
   };
 
+  // Language (en | ar) — controls UI strings + RTL direction
+  const [lang, setLang] = useState<"en" | "ar">("en");
+  useEffect(() => {
+    const stored = localStorage.getItem("quran-lang");
+    const initial: "en" | "ar" = stored === "ar" ? "ar" : "en";
+    setLang(initial);
+    document.documentElement.setAttribute("lang", initial);
+    document.documentElement.setAttribute("dir", initial === "ar" ? "rtl" : "ltr");
+  }, []);
+  const toggleLang = () => {
+    const next = lang === "ar" ? "en" : "ar";
+    setLang(next);
+    document.documentElement.setAttribute("lang", next);
+    document.documentElement.setAttribute("dir", next === "ar" ? "rtl" : "ltr");
+    localStorage.setItem("quran-lang", next);
+  };
+  const isAr = lang === "ar";
+  const t = (en: string, ar: string) => (isAr ? ar : en);
+  const arabicDigits = (n: number | string) =>
+    String(n).replace(/\d/g, (d) => "٠١٢٣٤٥٦٧٨٩"[Number(d)]);
+  const num = (n: number | string) => (isAr ? arabicDigits(n) : String(n));
+
   // Hydrate from localStorage on mount
   useEffect(() => {
     try {
