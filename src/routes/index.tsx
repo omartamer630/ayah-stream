@@ -381,30 +381,42 @@ function Index() {
                     <>
                       <div className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground flex items-center gap-1.5">
                         <Star className="w-3 h-3 fill-[var(--gold)] text-[var(--gold)]" />
-                        Favorites
+                        {t("Favorites", "المفضّلة")}
                       </div>
                       {sortedSurahs.favs.map((s) => (
                         <SelectItem key={`fav-${s.n}`} value={String(s.n)}>
                           <span className="tabular-nums text-muted-foreground mr-2">
-                            {String(s.n).padStart(3, "0")}
+                            {num(String(s.n).padStart(3, "0"))}
                           </span>
-                          {s.a}
-                          <span className="text-muted-foreground ml-2">· {s.c} ayahs</span>
+                          {isAr ? (
+                            <span style={{ fontFamily: "var(--font-arabic)" }}>{s.ar}</span>
+                          ) : (
+                            s.a
+                          )}
+                          <span className="text-muted-foreground ml-2">
+                            · {num(s.c)} {t("ayahs", "آية")}
+                          </span>
                         </SelectItem>
                       ))}
                       <div className="my-1 border-t border-border" />
                       <div className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
-                        All surahs
+                        {t("All surahs", "جميع السور")}
                       </div>
                     </>
                   )}
                   {sortedSurahs.rest.map((s) => (
                     <SelectItem key={s.n} value={String(s.n)}>
                       <span className="tabular-nums text-muted-foreground mr-2">
-                        {String(s.n).padStart(3, "0")}
+                        {num(String(s.n).padStart(3, "0"))}
                       </span>
-                      {s.a}
-                      <span className="text-muted-foreground ml-2">· {s.c} ayahs</span>
+                      {isAr ? (
+                        <span style={{ fontFamily: "var(--font-arabic)" }}>{s.ar}</span>
+                      ) : (
+                        s.a
+                      )}
+                      <span className="text-muted-foreground ml-2">
+                        · {num(s.c)} {t("ayahs", "آية")}
+                      </span>
                     </SelectItem>
                   ))}
                 </SelectContent>
