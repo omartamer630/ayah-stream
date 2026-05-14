@@ -47,6 +47,25 @@ function Index() {
   const [favSurahs, setFavSurahs] = useState<number[]>([]);
   const [hydrated, setHydrated] = useState(false);
   const audioRefs = useRef<Array<HTMLAudioElement | null>>([]);
+  const [theme, setTheme] = useState<"light" | "dark">("light");
+
+  // Theme: hydrate + persist
+  useEffect(() => {
+    const stored = localStorage.getItem("quran-theme");
+    const prefersDark =
+      typeof window !== "undefined" &&
+      window.matchMedia?.("(prefers-color-scheme: dark)").matches;
+    const initial: "light" | "dark" =
+      stored === "dark" || stored === "light" ? stored : prefersDark ? "dark" : "light";
+    setTheme(initial);
+    document.documentElement.classList.toggle("dark", initial === "dark");
+  }, []);
+  const toggleTheme = () => {
+    const next = theme === "dark" ? "light" : "dark";
+    setTheme(next);
+    document.documentElement.classList.toggle("dark", next === "dark");
+    localStorage.setItem("quran-theme", next);
+  };
 
   // Hydrate from localStorage on mount
   useEffect(() => {
