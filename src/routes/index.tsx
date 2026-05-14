@@ -359,7 +359,7 @@ function Index() {
             <div className="md:col-span-5 space-y-2.5">
               <div className="flex justify-between items-end">
                 <Label className="block text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
-                  Surah
+                  {t("Surah", "السورة")}
                 </Label>
                 <button
                   type="button"
