@@ -279,28 +279,46 @@ function Index() {
           <div>
             <h1
               className="font-semibold text-base tracking-[0.25em] uppercase"
-              style={{ fontFamily: "var(--font-display)" }}
+              style={{ fontFamily: isAr ? "var(--font-arabic)" : "var(--font-display)" }}
             >
-              Quran Audio
+              {t("Quran Audio", "صوتيات القرآن")}
             </h1>
-            <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mt-1">
-              Surah &amp; Ayah range player
+            <p
+              className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mt-1"
+              style={isAr ? { fontFamily: "var(--font-arabic)", letterSpacing: 0 } : undefined}
+            >
+              {t("Surah & Ayah range player", "مشغّل السور والآيات")}
             </p>
           </div>
         </div>
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={toggleTheme}
-          aria-label="Toggle theme"
-          className="rounded-full border-border/60"
-        >
-          {theme === "dark" ? (
-            <Sun className="w-4 h-4 text-[var(--gold)]" />
-          ) : (
-            <Moon className="w-4 h-4" />
-          )}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={toggleLang}
+            aria-label="Toggle language"
+            title={isAr ? "English" : "العربية"}
+            className="rounded-full border-border/60 gap-1 w-auto px-3"
+          >
+            <Languages className="w-4 h-4" />
+            <span className="text-[10px] font-bold uppercase tracking-wider">
+              {isAr ? "EN" : "ع"}
+            </span>
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={toggleTheme}
+            aria-label="Toggle theme"
+            className="rounded-full border-border/60"
+          >
+            {theme === "dark" ? (
+              <Sun className="w-4 h-4 text-[var(--gold)]" />
+            ) : (
+              <Moon className="w-4 h-4" />
+            )}
+          </Button>
+        </div>
       </header>
 
       <main className="max-w-5xl mx-auto px-6 pb-24">
@@ -308,15 +326,30 @@ function Index() {
         <section className="mb-14">
           <h2
             className="text-5xl md:text-6xl mb-6 leading-[1.05] text-foreground"
-            style={{ fontFamily: "var(--font-display)" }}
+            style={{ fontFamily: isAr ? "var(--font-arabic)" : "var(--font-display)" }}
           >
-            Listen and
-            <br />
-            <span className="italic font-normal text-foreground/90">download</span>
+            {isAr ? (
+              <>
+                استمع
+                <br />
+                <span className="font-normal text-foreground/90">وحمّل</span>
+              </>
+            ) : (
+              <>
+                Listen and
+                <br />
+                <span className="italic font-normal text-foreground/90">download</span>
+              </>
+            )}
           </h2>
-          <p className="max-w-xl text-muted-foreground leading-relaxed">
-            Choose a Surah, pick a range, and play or download individual MP3s — or grab the full
-            range as a ZIP.
+          <p
+            className="max-w-xl text-muted-foreground leading-relaxed"
+            style={isAr ? { fontFamily: "var(--font-arabic)", fontSize: "1.125rem" } : undefined}
+          >
+            {t(
+              "Choose a Surah, pick a range, and play or download individual MP3s — or grab the full range as a ZIP.",
+              "اختر سورة وحدّد نطاق الآيات، ثم استمع أو حمّل كل آية على حدة، أو احصل على النطاق كاملًا في ملف مضغوط.",
+            )}
           </p>
         </section>
 
