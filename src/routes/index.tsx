@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Download, Pause, Play, Loader2, Package, Star, BookOpenText } from "lucide-react";
+import { Download, Pause, Play, Loader2, Package, Star, BookOpenText, Moon, Sun } from "lucide-react";
 import { SURAHS, RECITERS, ayahAudioUrl, type ReciterId } from "@/lib/quran";
 import { Button } from "@/components/ui/button";
 import {
