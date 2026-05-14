@@ -518,7 +518,9 @@ function Index() {
               </div>
               <div className="hidden md:block h-4 w-px bg-border" />
               <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
-                {end - start + 1} ayah{end - start + 1 !== 1 ? "s" : ""} loaded
+                {isAr
+                  ? `${num(end - start + 1)} آية محمّلة`
+                  : `${end - start + 1} ayah${end - start + 1 !== 1 ? "s" : ""} loaded`}
               </div>
             </div>
             <div className="flex gap-3 flex-wrap w-full md:w-auto">
@@ -531,10 +533,10 @@ function Index() {
                 {loading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Loading…
+                    {t("Loading…", "جارٍ التحميل…")}
                   </>
                 ) : (
-                  "Load Ayahs"
+                  t("Load Ayahs", "تحميل الآيات")
                 )}
               </Button>
               <Button
@@ -549,7 +551,7 @@ function Index() {
                 ) : (
                   <Package className="w-4 h-4" />
                 )}
-                Download ZIP
+                {t("Download ZIP", "تنزيل ZIP")}
               </Button>
             </div>
           </div>
