@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Download, Pause, Play, Loader2, Package, Star, BookOpenText } from "lucide-react";
+import { Download, Pause, Play, Loader2, Package, Star, BookOpenText, Moon, Sun } from "lucide-react";
 import { SURAHS, RECITERS, ayahAudioUrl, type ReciterId } from "@/lib/quran";
 import { Button } from "@/components/ui/button";
 import {
@@ -47,6 +47,25 @@ function Index() {
   const [favSurahs, setFavSurahs] = useState<number[]>([]);
   const [hydrated, setHydrated] = useState(false);
   const audioRefs = useRef<Array<HTMLAudioElement | null>>([]);
+  const [theme, setTheme] = useState<"light" | "dark">("light");
+
+  // Theme: hydrate + persist
+  useEffect(() => {
+    const stored = localStorage.getItem("quran-theme");
+    const prefersDark =
+      typeof window !== "undefined" &&
+      window.matchMedia?.("(prefers-color-scheme: dark)").matches;
+    const initial: "light" | "dark" =
+      stored === "dark" || stored === "light" ? stored : prefersDark ? "dark" : "light";
+    setTheme(initial);
+    document.documentElement.classList.toggle("dark", initial === "dark");
+  }, []);
+  const toggleTheme = () => {
+    const next = theme === "dark" ? "light" : "dark";
+    setTheme(next);
+    document.documentElement.classList.toggle("dark", next === "dark");
+    localStorage.setItem("quran-theme", next);
+  };
 
   // Hydrate from localStorage on mount
   useEffect(() => {
@@ -247,6 +266,19 @@ function Index() {
             </p>
           </div>
         </div>
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={toggleTheme}
+          aria-label="Toggle theme"
+          className="rounded-full border-border/60"
+        >
+          {theme === "dark" ? (
+            <Sun className="w-4 h-4 text-[var(--gold)]" />
+          ) : (
+            <Moon className="w-4 h-4" />
+          )}
+        </Button>
       </header>
 
       <main className="max-w-5xl mx-auto px-6 pb-24">
