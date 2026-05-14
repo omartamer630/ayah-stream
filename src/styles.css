@@ -121,25 +121,37 @@
 }
 
 .dark {
-  --background: oklch(0.129 0.042 264.695);
-  --foreground: oklch(0.984 0.003 247.858);
-  --card: oklch(0.208 0.042 265.755);
-  --card-foreground: oklch(0.984 0.003 247.858);
-  --popover: oklch(0.208 0.042 265.755);
-  --popover-foreground: oklch(0.984 0.003 247.858);
-  --primary: oklch(0.929 0.013 255.508);
-  --primary-foreground: oklch(0.208 0.042 265.755);
-  --secondary: oklch(0.279 0.041 260.031);
-  --secondary-foreground: oklch(0.984 0.003 247.858);
-  --muted: oklch(0.279 0.041 260.031);
-  --muted-foreground: oklch(0.704 0.04 256.788);
-  --accent: oklch(0.279 0.041 260.031);
-  --accent-foreground: oklch(0.984 0.003 247.858);
-  --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(1 0 0 / 10%);
+  /* Noir Emerald: pure black background, emerald + gold accents */
+  --background: oklch(0.14 0 0);
+  --foreground: oklch(0.95 0.012 85);
+  --card: oklch(0.18 0.005 160);
+  --card-foreground: oklch(0.95 0.012 85);
+  --popover: oklch(0.18 0.005 160);
+  --popover-foreground: oklch(0.95 0.012 85);
+  /* Primary = Emerald */
+  --primary: oklch(0.55 0.11 165);
+  --primary-foreground: oklch(0.98 0.012 85);
+  --primary-glow: oklch(0.65 0.13 165);
+  /* Gold accent */
+  --gold: oklch(0.78 0.13 82);
+  --gold-foreground: oklch(0.14 0 0);
+  --secondary: oklch(0.22 0.005 160);
+  --secondary-foreground: oklch(0.95 0.012 85);
+  --muted: oklch(0.22 0.005 160);
+  --muted-foreground: oklch(0.7 0.012 85);
+  --accent: oklch(0.78 0.13 82);
+  --accent-foreground: oklch(0.14 0 0);
+  --destructive: oklch(0.62 0.22 27);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(1 0 0 / 12%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.551 0.027 264.364);
+  --ring: oklch(0.78 0.13 82);
+  --gradient-hero: linear-gradient(135deg, oklch(0.18 0.005 160), oklch(0.28 0.04 165));
+  --gradient-gold: linear-gradient(135deg, oklch(0.82 0.14 82), oklch(0.7 0.12 75));
+  --gradient-surface: linear-gradient(180deg, oklch(0.16 0 0), oklch(0.2 0.005 160));
+  --shadow-soft: 0 4px 20px -4px oklch(0 0 0 / 0.5);
+  --shadow-glow: 0 8px 30px -6px oklch(0.78 0.13 82 / 0.45);
+  --shadow-deep: 0 20px 50px -12px oklch(0 0 0 / 0.7);
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
