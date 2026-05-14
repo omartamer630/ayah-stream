@@ -425,7 +425,7 @@ function Index() {
 
             <div className="md:col-span-2 space-y-2.5">
               <Label className="block text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
-                From
+                {t("From", "من")}
               </Label>
               <Input
                 type="number"
@@ -439,7 +439,7 @@ function Index() {
 
             <div className="md:col-span-2 space-y-2.5">
               <Label className="block text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
-                To
+                {t("To", "إلى")}
               </Label>
               <Input
                 type="number"
