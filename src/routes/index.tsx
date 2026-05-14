@@ -478,7 +478,7 @@ function Index() {
                     <>
                       <div className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground flex items-center gap-1.5">
                         <Star className="w-3 h-3 fill-[var(--gold)] text-[var(--gold)]" />
-                        Favorites
+                        {t("Favorites", "المفضّلة")}
                       </div>
                       {sortedReciters.favs.map((r) => (
                         <SelectItem key={`fav-${r.id}`} value={r.id} className="pr-10">
@@ -490,7 +490,7 @@ function Index() {
                       ))}
                       <div className="my-1 border-t border-border" />
                       <div className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
-                        All reciters
+                        {t("All reciters", "جميع القرّاء")}
                       </div>
                     </>
                   )}
