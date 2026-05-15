@@ -728,6 +728,19 @@ function Index() {
                               preload="none"
                               className="flex-1 h-9"
                             />
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setOpenText((s) => ({ ...s, [a.ayah]: !s[a.ayah] }))
+                              }
+                              disabled={!a.text}
+                              aria-pressed={!!openText[a.ayah]}
+                              className="h-10 px-3 rounded-lg flex items-center justify-center text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors shrink-0 disabled:opacity-40"
+                            >
+                              {openText[a.ayah]
+                                ? t("Hide text", "إخفاء")
+                                : t("Show text", "إظهار")}
+                            </button>
                             <a
                               href={a.audioUrl}
                               download={`${String(surahNum).padStart(3, "0")}-${String(a.ayah).padStart(3, "0")}.mp3`}
