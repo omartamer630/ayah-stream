@@ -519,8 +519,8 @@ function Index() {
               <div className="hidden md:block h-4 w-px bg-border" />
               <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
                 {isAr
-                  ? `${num(end - start + 1)} آية محمّلة`
-                  : `${end - start + 1} ayah${end - start + 1 !== 1 ? "s" : ""} loaded`}
+                  ? <><bdi>{num(end - start + 1)}</bdi> {"آية محمّلة"}</>
+                  : <><bdi>{end - start + 1}</bdi> {`ayah${end - start + 1 !== 1 ? "s" : ""} loaded`}</>}
               </div>
             </div>
             <div className="flex gap-3 flex-wrap w-full md:w-auto">
