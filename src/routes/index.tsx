@@ -598,7 +598,7 @@ function Index() {
                       <div className="flex-1 w-full space-y-3 min-w-0">
                         <div className="flex text-[var(--gold)] text-[10px] uppercase font-bold tracking-[0.2em]">
                           <span>
-                            {t("Full range", "النطاق الكامل")} · {num(rangeStart)}–{num(rangeEnd)}
+                            {t("Full range", "النطاق الكامل")} · <bdi>{num(rangeStart)}–{num(rangeEnd)}</bdi>
                           </span>
                         </div>
                         <audio
