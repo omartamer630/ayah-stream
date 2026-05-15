@@ -414,8 +414,8 @@ function Index() {
                       ) : (
                         s.a
                       )}
-                      <span className="text-muted-foreground ml-2">
-                        · {num(s.c)} {t("ayahs", "آية")}
+                      <span className="text-muted-foreground mx-2">
+                        · <bdi>{num(s.c)}</bdi> {t("ayahs", "آية")}
                       </span>
                     </SelectItem>
                   ))}
