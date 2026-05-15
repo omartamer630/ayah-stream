@@ -393,8 +393,8 @@ function Index() {
                           ) : (
                             s.a
                           )}
-                          <span className="text-muted-foreground ml-2">
-                            · {num(s.c)} {t("ayahs", "آية")}
+                          <span className="text-muted-foreground mx-2">
+                            · <bdi>{num(s.c)}</bdi> {t("ayahs", "آية")}
                           </span>
                         </SelectItem>
                       ))}
@@ -414,8 +414,8 @@ function Index() {
                       ) : (
                         s.a
                       )}
-                      <span className="text-muted-foreground ml-2">
-                        · {num(s.c)} {t("ayahs", "آية")}
+                      <span className="text-muted-foreground mx-2">
+                        · <bdi>{num(s.c)}</bdi> {t("ayahs", "آية")}
                       </span>
                     </SelectItem>
                   ))}
@@ -519,8 +519,8 @@ function Index() {
               <div className="hidden md:block h-4 w-px bg-border" />
               <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
                 {isAr
-                  ? `${num(end - start + 1)} آية محمّلة`
-                  : `${end - start + 1} ayah${end - start + 1 !== 1 ? "s" : ""} loaded`}
+                  ? <><bdi>{num(end - start + 1)}</bdi> {"آية محمّلة"}</>
+                  : <><bdi>{end - start + 1}</bdi> {`ayah${end - start + 1 !== 1 ? "s" : ""} loaded`}</>}
               </div>
             </div>
             <div className="flex gap-3 flex-wrap w-full md:w-auto">
@@ -551,7 +551,7 @@ function Index() {
                 ) : (
                   <Package className="w-4 h-4" />
                 )}
-                {t("Download ZIP", "تنزيل ZIP")}
+                {isAr ? <>تنزيل <bdi>ZIP</bdi></> : "Download ZIP"}
               </Button>
             </div>
           </div>
@@ -598,7 +598,7 @@ function Index() {
                       <div className="flex-1 w-full space-y-3 min-w-0">
                         <div className="flex text-[var(--gold)] text-[10px] uppercase font-bold tracking-[0.2em]">
                           <span>
-                            {t("Full range", "النطاق الكامل")} · {num(rangeStart)}–{num(rangeEnd)}
+                            {t("Full range", "النطاق الكامل")} · <bdi>{num(rangeStart)}–{num(rangeEnd)}</bdi>
                           </span>
                         </div>
                         <audio
@@ -667,8 +667,7 @@ function Index() {
                   className="text-xs font-bold uppercase tracking-[0.25em] text-muted-foreground"
                   style={{ fontFamily: isAr ? "var(--font-arabic)" : "var(--font-display)" }}
                 >
-                  {isAr ? surah.ar : surah.a} · {num(ayahs[0].ayah)}–
-                  {num(ayahs[ayahs.length - 1].ayah)}
+                  {isAr ? surah.ar : surah.a} · <bdi>{num(ayahs[0].ayah)}–{num(ayahs[ayahs.length - 1].ayah)}</bdi>
                 </h3>
                 <div className="flex-1 h-px bg-border" />
               </div>
@@ -746,9 +745,11 @@ function Index() {
         <footer className="mt-20 pt-10 border-t border-border text-center">
           <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
             {t("Audio courtesy of", "الصوت بإذن من")}{" "}
-            <a href="https://everyayah.com" className="text-[var(--gold)] hover:underline">
-              everyayah.com
-            </a>{" "}
+            <bdi>
+              <a href="https://everyayah.com" className="text-[var(--gold)] hover:underline">
+                everyayah.com
+              </a>
+            </bdi>{" "}
             · {t("Cached at the edge", "مخزّن على الحافة")}
           </p>
         </footer>
