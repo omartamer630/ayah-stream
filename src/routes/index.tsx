@@ -667,8 +667,7 @@ function Index() {
                   className="text-xs font-bold uppercase tracking-[0.25em] text-muted-foreground"
                   style={{ fontFamily: isAr ? "var(--font-arabic)" : "var(--font-display)" }}
                 >
-                  {isAr ? surah.ar : surah.a} · {num(ayahs[0].ayah)}–
-                  {num(ayahs[ayahs.length - 1].ayah)}
+                  {isAr ? surah.ar : surah.a} · <bdi>{num(ayahs[0].ayah)}–{num(ayahs[ayahs.length - 1].ayah)}</bdi>
                 </h3>
                 <div className="flex-1 h-px bg-border" />
               </div>
