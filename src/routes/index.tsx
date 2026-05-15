@@ -745,9 +745,11 @@ function Index() {
         <footer className="mt-20 pt-10 border-t border-border text-center">
           <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
             {t("Audio courtesy of", "الصوت بإذن من")}{" "}
-            <a href="https://everyayah.com" className="text-[var(--gold)] hover:underline">
-              everyayah.com
-            </a>{" "}
+            <bdi>
+              <a href="https://everyayah.com" className="text-[var(--gold)] hover:underline">
+                everyayah.com
+              </a>
+            </bdi>{" "}
             · {t("Cached at the edge", "مخزّن على الحافة")}
           </p>
         </footer>
