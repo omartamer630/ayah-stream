@@ -692,14 +692,16 @@ function Index() {
                           {num(a.ayah)}
                         </div>
                         <div className="flex-1 p-5 md:p-7 min-w-0">
-                          <div
-                            className="text-right text-2xl md:text-3xl text-foreground/90 mb-5 leading-[2.2]"
-                            dir="rtl"
-                            style={{ fontFamily: "var(--font-arabic)" }}
-                          >
-                            {a.text && <span>{a.text} </span>}
-                            <span className="text-[var(--gold)]">﴿{arabicDigits(a.ayah)}﴾</span>
-                          </div>
+                          {openText[a.ayah] && a.text && (
+                            <div
+                              className="text-right text-2xl md:text-3xl text-foreground/90 mb-5 leading-[2.2]"
+                              dir="rtl"
+                              style={{ fontFamily: "var(--font-arabic)" }}
+                            >
+                              <span>{a.text} </span>
+                              <span className="text-[var(--gold)]">﴿{arabicDigits(a.ayah)}﴾</span>
+                            </div>
+                          )}
                           <div className="flex items-center gap-4">
                             <button
                               onClick={() => togglePlay(idx)}
