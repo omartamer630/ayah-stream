@@ -48,6 +48,7 @@ function Index() {
   const [favSurahs, setFavSurahs] = useState<number[]>([]);
   const [hydrated, setHydrated] = useState(false);
   const audioRefs = useRef<Array<HTMLAudioElement | null>>([]);
+  const [openText, setOpenText] = useState<Record<number, boolean>>({});
   const [theme, setTheme] = useState<"light" | "dark">("light");
 
   // Theme: hydrate + persist
