@@ -31,6 +31,7 @@ export const Route = createFileRoute("/")({
 interface AyahItem {
   ayah: number;
   audioUrl: string;
+  text?: string;
 }
 
 function Index() {
