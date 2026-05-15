@@ -32,7 +32,7 @@ export const Route = createFileRoute("/api/surah/$id")({
         try {
           const res = await fetch(
             `https://api.alquran.cloud/v1/surah/${surahNum}/quran-uthmani`,
-            { cf: { cacheTtl: 86400, cacheEverything: true } as any },
+            { cf: { cacheTtl: 86400, cacheEverything: true } } as RequestInit,
           );
           if (res.ok) {
             const json = (await res.json()) as { data?: { ayahs?: Array<{ numberInSurah: number; text: string }> } };
