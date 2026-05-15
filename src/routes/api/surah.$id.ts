@@ -28,9 +28,23 @@ export const Route = createFileRoute("/api/surah/$id")({
         const end = Math.max(start, Math.min(parsed.data.end, surah.c));
         const reciter = parsed.data.reciter;
 
+        let texts: Record<number, string> = {};
+        try {
+          const res = await fetch(
+            `https://api.alquran.cloud/v1/surah/${surahNum}/quran-uthmani`,
+            { cf: { cacheTtl: 86400, cacheEverything: true } } as RequestInit,
+          );
+          if (res.ok) {
+            const json = (await res.json()) as { data?: { ayahs?: Array<{ numberInSurah: number; text: string }> } };
+            for (const a of json.data?.ayahs ?? []) texts[a.numberInSurah] = a.text;
+          }
+        } catch {
+          // network failure — return without text
+        }
+
         const ayahs = Array.from({ length: end - start + 1 }, (_, i) => {
           const a = start + i;
-          return { ayah: a, audioUrl: ayahAudioUrl(reciter, surahNum, a) };
+          return { ayah: a, audioUrl: ayahAudioUrl(reciter, surahNum, a), text: texts[a] ?? "" };
         });
 
         return Response.json(
