@@ -551,7 +551,7 @@ function Index() {
                 ) : (
                   <Package className="w-4 h-4" />
                 )}
-                {t("Download ZIP", "تنزيل ZIP")}
+                {isAr ? <>تنزيل <bdi>ZIP</bdi></> : "Download ZIP"}
               </Button>
             </div>
           </div>
