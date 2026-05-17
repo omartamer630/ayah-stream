@@ -28,18 +28,42 @@ export const Route = createFileRoute("/api/surah/$id")({
         const end = Math.max(start, Math.min(parsed.data.end, surah.c));
         const reciter = parsed.data.reciter;
 
-        let texts: Record<number, string> = {};
+        const texts: Record<number, string> = {};
+        // Primary: api.quran.com (official Madina mushaf, Uthmani Hafs script, fully voweled)
         try {
           const res = await fetch(
-            `https://api.alquran.cloud/v1/surah/${surahNum}/quran-uthmani`,
+            `https://api.quran.com/api/v4/quran/verses/uthmani?chapter_number=${surahNum}`,
             { cf: { cacheTtl: 86400, cacheEverything: true } } as RequestInit,
           );
           if (res.ok) {
-            const json = (await res.json()) as { data?: { ayahs?: Array<{ numberInSurah: number; text: string }> } };
-            for (const a of json.data?.ayahs ?? []) texts[a.numberInSurah] = a.text;
+            const json = (await res.json()) as {
+              verses?: Array<{ verse_key: string; text_uthmani: string }>;
+            };
+            for (const v of json.verses ?? []) {
+              const [, ayahStr] = v.verse_key.split(":");
+              const n = Number(ayahStr);
+              if (n) texts[n] = v.text_uthmani;
+            }
           }
         } catch {
-          // network failure — return without text
+          // ignore, fallback below
+        }
+        // Fallback: alquran.cloud Hafs Uthmani edition
+        if (Object.keys(texts).length === 0) {
+          try {
+            const res = await fetch(
+              `https://api.alquran.cloud/v1/surah/${surahNum}/quran-uthmani-hafs`,
+              { cf: { cacheTtl: 86400, cacheEverything: true } } as RequestInit,
+            );
+            if (res.ok) {
+              const json = (await res.json()) as {
+                data?: { ayahs?: Array<{ numberInSurah: number; text: string }> };
+              };
+              for (const a of json.data?.ayahs ?? []) texts[a.numberInSurah] = a.text;
+            }
+          } catch {
+            // network failure — return without text
+          }
         }
 
         const ayahs = Array.from({ length: end - start + 1 }, (_, i) => {
