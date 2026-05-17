@@ -41,11 +41,50 @@ function normalizeArabic(input: string): string {
  */
 const surahTextCache = new Map<number, Map<number, string>>();
 
-async function loadSurahTexts(surahNum: number): Promise<Map<number, string>> {
-  const cached = surahTextCache.get(surahNum);
-  if (cached) return cached;
+/**
+ * Rolling cache metrics for this worker isolate. Reset on cold start.
+ * Logged on every load and exposed via the `x-cache-*` response headers
+ * so you can monitor hit rate + fetch latency without external infra.
+ */
+const cacheMetrics = {
+  hits: 0,
+  misses: 0,
+  fetchCount: 0,
+  fetchErrors: 0,
+  totalFetchMs: 0,
+  get hitRate() {
+    const total = this.hits + this.misses;
+    return total === 0 ? 0 : this.hits / total;
+  },
+  get avgFetchMs() {
+    return this.fetchCount === 0 ? 0 : this.totalFetchMs / this.fetchCount;
+  },
+};
 
+type LoadResult = {
+  texts: Map<number, string>;
+  cacheStatus: "hit" | "miss";
+  fetchMs: number;
+  source: "quran.com" | "alquran.cloud" | "none";
+};
+
+async function loadSurahTexts(surahNum: number): Promise<LoadResult> {
+  const cached = surahTextCache.get(surahNum);
+  if (cached) {
+    cacheMetrics.hits += 1;
+    console.log(
+      `[surah-text] HIT surah=${surahNum} ayahs=${cached.size} ` +
+        `hitRate=${(cacheMetrics.hitRate * 100).toFixed(1)}% ` +
+        `hits=${cacheMetrics.hits} misses=${cacheMetrics.misses}`,
+    );
+    return { texts: cached, cacheStatus: "hit", fetchMs: 0, source: "quran.com" };
+  }
+
+  cacheMetrics.misses += 1;
   const texts = new Map<number, string>();
+  let source: LoadResult["source"] = "none";
+  const startedAt = Date.now();
+
   // Primary: api.quran.com (Madina Hafs)
   try {
     const res = await fetch(
@@ -61,10 +100,16 @@ async function loadSurahTexts(surahNum: number): Promise<Map<number, string>> {
         const n = Number(ayahStr);
         if (n) texts.set(n, normalizeArabic(v.text_uthmani));
       }
+      if (texts.size > 0) source = "quran.com";
+    } else {
+      cacheMetrics.fetchErrors += 1;
+      console.warn(`[surah-text] primary non-ok surah=${surahNum} status=${res.status}`);
     }
-  } catch {
-    // ignore, fallback below
+  } catch (err) {
+    cacheMetrics.fetchErrors += 1;
+    console.warn(`[surah-text] primary failed surah=${surahNum}`, err);
   }
+
   // Fallback: alquran.cloud Hafs Uthmani
   if (texts.size === 0) {
     try {
@@ -79,15 +124,33 @@ async function loadSurahTexts(surahNum: number): Promise<Map<number, string>> {
         for (const a of json.data?.ayahs ?? []) {
           texts.set(a.numberInSurah, normalizeArabic(a.text));
         }
+        if (texts.size > 0) source = "alquran.cloud";
+      } else {
+        cacheMetrics.fetchErrors += 1;
+        console.warn(`[surah-text] fallback non-ok surah=${surahNum} status=${res.status}`);
       }
-    } catch {
-      // network failure — leave empty
+    } catch (err) {
+      cacheMetrics.fetchErrors += 1;
+      console.warn(`[surah-text] fallback failed surah=${surahNum}`, err);
     }
   }
 
+  const fetchMs = Date.now() - startedAt;
+  cacheMetrics.fetchCount += 1;
+  cacheMetrics.totalFetchMs += fetchMs;
+
   // Only cache successful loads so transient failures can retry.
   if (texts.size > 0) surahTextCache.set(surahNum, texts);
-  return texts;
+
+  console.log(
+    `[surah-text] MISS surah=${surahNum} source=${source} ayahs=${texts.size} ` +
+      `fetchMs=${fetchMs} avgFetchMs=${cacheMetrics.avgFetchMs.toFixed(0)} ` +
+      `hitRate=${(cacheMetrics.hitRate * 100).toFixed(1)}% ` +
+      `hits=${cacheMetrics.hits} misses=${cacheMetrics.misses} ` +
+      `errors=${cacheMetrics.fetchErrors} cachedSurahs=${surahTextCache.size}`,
+  );
+
+  return { texts, cacheStatus: "miss", fetchMs, source };
 }
 
 export const Route = createFileRoute("/api/surah/$id")({
