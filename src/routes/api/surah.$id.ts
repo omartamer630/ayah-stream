@@ -171,7 +171,7 @@ export const Route = createFileRoute("/api/surah/$id")({
         const end = Math.max(start, Math.min(parsed.data.end, surah.c));
         const reciter = parsed.data.reciter;
 
-        const texts = await loadSurahTexts(surahNum);
+        const { texts, cacheStatus, fetchMs, source } = await loadSurahTexts(surahNum);
 
         const ayahs = Array.from({ length: end - start + 1 }, (_, i) => {
           const a = start + i;
@@ -188,7 +188,17 @@ export const Route = createFileRoute("/api/surah/$id")({
             ayahs,
           },
           {
-            headers: { "Cache-Control": "public, max-age=86400" },
+            headers: {
+              "Cache-Control": "public, max-age=86400",
+              "x-cache-status": cacheStatus,
+              "x-cache-source": source,
+              "x-cache-fetch-ms": String(fetchMs),
+              "x-cache-hit-rate": cacheMetrics.hitRate.toFixed(3),
+              "x-cache-hits": String(cacheMetrics.hits),
+              "x-cache-misses": String(cacheMetrics.misses),
+              "x-cache-errors": String(cacheMetrics.fetchErrors),
+              "x-cache-surahs": String(surahTextCache.size),
+            },
           },
         );
       },
