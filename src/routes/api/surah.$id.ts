@@ -63,7 +63,7 @@ export const Route = createFileRoute("/api/surah/$id")({
             for (const v of json.verses ?? []) {
               const [, ayahStr] = v.verse_key.split(":");
               const n = Number(ayahStr);
-              if (n) texts[n] = v.text_uthmani;
+              if (n) texts[n] = normalizeArabic(v.text_uthmani);
             }
           }
         } catch {
