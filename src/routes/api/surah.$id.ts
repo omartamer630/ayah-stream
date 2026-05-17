@@ -80,7 +80,7 @@ export const Route = createFileRoute("/api/surah/$id")({
               const json = (await res.json()) as {
                 data?: { ayahs?: Array<{ numberInSurah: number; text: string }> };
               };
-              for (const a of json.data?.ayahs ?? []) texts[a.numberInSurah] = a.text;
+              for (const a of json.data?.ayahs ?? []) texts[a.numberInSurah] = normalizeArabic(a.text);
             }
           } catch {
             // network failure — return without text
