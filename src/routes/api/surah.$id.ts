@@ -31,6 +31,65 @@ function normalizeArabic(input: string): string {
     .trim();
 }
 
+/**
+ * Module-level cache of normalized Arabic text per surah.
+ * Key: surah number → Map<ayahNumber, normalizedText>.
+ * Lives for the lifetime of the worker isolate. Combined with the existing
+ * HTTP `Cache-Control: max-age=86400` header and Cloudflare edge cache,
+ * this means each surah's text is fetched + normalized at most once per
+ * isolate per day, and reused across all ayah ranges/reciters.
+ */
+const surahTextCache = new Map<number, Map<number, string>>();
+
+async function loadSurahTexts(surahNum: number): Promise<Map<number, string>> {
+  const cached = surahTextCache.get(surahNum);
+  if (cached) return cached;
+
+  const texts = new Map<number, string>();
+  // Primary: api.quran.com (Madina Hafs)
+  try {
+    const res = await fetch(
+      `https://api.quran.com/api/v4/quran/verses/uthmani?chapter_number=${surahNum}`,
+      { cf: { cacheTtl: 86400, cacheEverything: true } } as RequestInit,
+    );
+    if (res.ok) {
+      const json = (await res.json()) as {
+        verses?: Array<{ verse_key: string; text_uthmani: string }>;
+      };
+      for (const v of json.verses ?? []) {
+        const [, ayahStr] = v.verse_key.split(":");
+        const n = Number(ayahStr);
+        if (n) texts.set(n, normalizeArabic(v.text_uthmani));
+      }
+    }
+  } catch {
+    // ignore, fallback below
+  }
+  // Fallback: alquran.cloud Hafs Uthmani
+  if (texts.size === 0) {
+    try {
+      const res = await fetch(
+        `https://api.alquran.cloud/v1/surah/${surahNum}/quran-uthmani-hafs`,
+        { cf: { cacheTtl: 86400, cacheEverything: true } } as RequestInit,
+      );
+      if (res.ok) {
+        const json = (await res.json()) as {
+          data?: { ayahs?: Array<{ numberInSurah: number; text: string }> };
+        };
+        for (const a of json.data?.ayahs ?? []) {
+          texts.set(a.numberInSurah, normalizeArabic(a.text));
+        }
+      }
+    } catch {
+      // network failure — leave empty
+    }
+  }
+
+  // Only cache successful loads so transient failures can retry.
+  if (texts.size > 0) surahTextCache.set(surahNum, texts);
+  return texts;
+}
+
 export const Route = createFileRoute("/api/surah/$id")({
   server: {
     handlers: {
@@ -49,47 +108,11 @@ export const Route = createFileRoute("/api/surah/$id")({
         const end = Math.max(start, Math.min(parsed.data.end, surah.c));
         const reciter = parsed.data.reciter;
 
-        const texts: Record<number, string> = {};
-        // Primary: api.quran.com (official Madina mushaf, Uthmani Hafs script, fully voweled)
-        try {
-          const res = await fetch(
-            `https://api.quran.com/api/v4/quran/verses/uthmani?chapter_number=${surahNum}`,
-            { cf: { cacheTtl: 86400, cacheEverything: true } } as RequestInit,
-          );
-          if (res.ok) {
-            const json = (await res.json()) as {
-              verses?: Array<{ verse_key: string; text_uthmani: string }>;
-            };
-            for (const v of json.verses ?? []) {
-              const [, ayahStr] = v.verse_key.split(":");
-              const n = Number(ayahStr);
-              if (n) texts[n] = normalizeArabic(v.text_uthmani);
-            }
-          }
-        } catch {
-          // ignore, fallback below
-        }
-        // Fallback: alquran.cloud Hafs Uthmani edition
-        if (Object.keys(texts).length === 0) {
-          try {
-            const res = await fetch(
-              `https://api.alquran.cloud/v1/surah/${surahNum}/quran-uthmani-hafs`,
-              { cf: { cacheTtl: 86400, cacheEverything: true } } as RequestInit,
-            );
-            if (res.ok) {
-              const json = (await res.json()) as {
-                data?: { ayahs?: Array<{ numberInSurah: number; text: string }> };
-              };
-              for (const a of json.data?.ayahs ?? []) texts[a.numberInSurah] = normalizeArabic(a.text);
-            }
-          } catch {
-            // network failure — return without text
-          }
-        }
+        const texts = await loadSurahTexts(surahNum);
 
         const ayahs = Array.from({ length: end - start + 1 }, (_, i) => {
           const a = start + i;
-          return { ayah: a, audioUrl: ayahAudioUrl(reciter, surahNum, a), text: texts[a] ?? "" };
+          return { ayah: a, audioUrl: ayahAudioUrl(reciter, surahNum, a), text: texts.get(a) ?? "" };
         });
 
         return Response.json(
