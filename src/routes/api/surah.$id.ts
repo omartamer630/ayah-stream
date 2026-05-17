@@ -10,6 +10,27 @@ const Query = z.object({
   reciter: z.enum(reciterIds).default("Alafasy_128kbps"),
 });
 
+/**
+ * Normalize Arabic Quran text while preserving tashkeel (harakat).
+ * - Unicode NFC normalize so composed/decomposed marks match the mushaf.
+ * - Strip tatweel (U+0640) — a purely decorative stretching character.
+ * - Strip zero-width / bidi formatters (ZWJ, ZWNJ, LRM, RLM, BOM, etc.).
+ * - Collapse runs of whitespace (incl. Arabic-friendly NBSP) to a single space.
+ * - Trim leading/trailing whitespace.
+ * Preserved: all harakat U+064B–U+065F, shadda, sukun, dagger alif (U+0670),
+ *   small Quranic marks U+06D6–U+06ED, hamza forms, and ayah end markers.
+ */
+function normalizeArabic(input: string): string {
+  if (!input) return "";
+  return input
+    .normalize("NFC")
+    .replace(/\u0640/g, "") // tatweel
+    .replace(/[\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFEFF]/g, "") // zero-width & bidi
+    .replace(/[\t\n\r\u00A0\u2000-\u200A\u2028\u2029\u3000]+/g, " ") // unify whitespace
+    .replace(/ {2,}/g, " ")
+    .trim();
+}
+
 export const Route = createFileRoute("/api/surah/$id")({
   server: {
     handlers: {
