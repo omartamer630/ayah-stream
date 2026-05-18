@@ -1,6 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
+import { SpanStatusCode, trace } from "@opentelemetry/api";
 import { ayahAudioUrl, getSurah, RECITERS } from "@/lib/quran";
+
+/**
+ * OpenTelemetry tracer for normalized-text loading. Resolves to the globally
+ * registered TracerProvider when one is configured (e.g. via an OTel SDK or
+ * Cloudflare's Workers Observability OTLP exporter); otherwise the API
+ * defaults to a no-op tracer so this code is safe to run anywhere.
+ */
+const tracer = trace.getTracer("surah-text", "1.0.0");
 
 const reciterIds = RECITERS.map((r) => r.id) as [string, ...string[]];
 
