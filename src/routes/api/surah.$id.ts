@@ -105,7 +105,7 @@ async function fetchSource(
 }
 
 async function loadSurahTexts(surahNum: number): Promise<LoadResult> {
-  return tracer.startActiveSpan(
+  return tracer.startActiveSpan<[], Promise<LoadResult>>(
     "surah_text.load",
     { attributes: { "surah_text.surah": surahNum } },
     async (rootSpan) => {
