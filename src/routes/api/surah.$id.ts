@@ -1,6 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
+import { SpanStatusCode, trace } from "@opentelemetry/api";
 import { ayahAudioUrl, getSurah, RECITERS } from "@/lib/quran";
+
+/**
+ * OpenTelemetry tracer for normalized-text loading. Resolves to the globally
+ * registered TracerProvider when one is configured (e.g. via an OTel SDK or
+ * Cloudflare's Workers Observability OTLP exporter); otherwise the API
+ * defaults to a no-op tracer so this code is safe to run anywhere.
+ */
+const tracer = trace.getTracer("surah-text", "1.0.0");
 
 const reciterIds = RECITERS.map((r) => r.id) as [string, ...string[]];
 
@@ -68,89 +77,153 @@ type LoadResult = {
   source: "quran.com" | "alquran.cloud" | "none";
 };
 
-async function loadSurahTexts(surahNum: number): Promise<LoadResult> {
-  const cached = surahTextCache.get(surahNum);
-  if (cached) {
-    cacheMetrics.hits += 1;
-    console.log(
-      `[surah-text] HIT surah=${surahNum} ayahs=${cached.size} ` +
-        `hitRate=${(cacheMetrics.hitRate * 100).toFixed(1)}% ` +
-        `hits=${cacheMetrics.hits} misses=${cacheMetrics.misses}`,
-    );
-    return { texts: cached, cacheStatus: "hit", fetchMs: 0, source: "quran.com" };
-  }
-
-  cacheMetrics.misses += 1;
-  const texts = new Map<number, string>();
-  let source: LoadResult["source"] = "none";
-  const startedAt = Date.now();
-
-  // Primary: api.quran.com (Madina Hafs)
-  try {
-    const res = await fetch(
-      `https://api.quran.com/api/v4/quran/verses/uthmani?chapter_number=${surahNum}`,
-      { cf: { cacheTtl: 86400, cacheEverything: true } } as RequestInit,
-    );
-    if (res.ok) {
-      const json = (await res.json()) as {
-        verses?: Array<{ verse_key: string; text_uthmani: string }>;
-      };
-      for (const v of json.verses ?? []) {
-        const [, ayahStr] = v.verse_key.split(":");
-        const n = Number(ayahStr);
-        if (n) texts.set(n, normalizeArabic(v.text_uthmani));
-      }
-      if (texts.size > 0) source = "quran.com";
-    } else {
-      cacheMetrics.fetchErrors += 1;
-      console.warn(`[surah-text] primary non-ok surah=${surahNum} status=${res.status}`);
-    }
-  } catch (err) {
-    cacheMetrics.fetchErrors += 1;
-    console.warn(`[surah-text] primary failed surah=${surahNum}`, err);
-  }
-
-  // Fallback: alquran.cloud Hafs Uthmani
-  if (texts.size === 0) {
+async function fetchSource(
+  spanName: string,
+  attrs: Record<string, string | number>,
+  fn: () => Promise<{ ok: boolean; size: number; status?: number }>,
+): Promise<{ ok: boolean; size: number; status?: number; error?: unknown }> {
+  return tracer.startActiveSpan(spanName, { attributes: attrs }, async (span) => {
+    const startedAt = Date.now();
     try {
-      const res = await fetch(
-        `https://api.alquran.cloud/v1/surah/${surahNum}/quran-uthmani-hafs`,
-        { cf: { cacheTtl: 86400, cacheEverything: true } } as RequestInit,
-      );
-      if (res.ok) {
-        const json = (await res.json()) as {
-          data?: { ayahs?: Array<{ numberInSurah: number; text: string }> };
-        };
-        for (const a of json.data?.ayahs ?? []) {
-          texts.set(a.numberInSurah, normalizeArabic(a.text));
-        }
-        if (texts.size > 0) source = "alquran.cloud";
-      } else {
-        cacheMetrics.fetchErrors += 1;
-        console.warn(`[surah-text] fallback non-ok surah=${surahNum} status=${res.status}`);
+      const result = await fn();
+      span.setAttribute("surah_text.fetch_ms", Date.now() - startedAt);
+      span.setAttribute("surah_text.ayahs_loaded", result.size);
+      if (result.status !== undefined) span.setAttribute("http.status_code", result.status);
+      if (!result.ok) {
+        span.setStatus({ code: SpanStatusCode.ERROR, message: `non-ok status ${result.status}` });
       }
+      return result;
     } catch (err) {
-      cacheMetrics.fetchErrors += 1;
-      console.warn(`[surah-text] fallback failed surah=${surahNum}`, err);
+      span.setAttribute("surah_text.fetch_ms", Date.now() - startedAt);
+      span.recordException(err as Error);
+      span.setStatus({ code: SpanStatusCode.ERROR, message: (err as Error).message });
+      return { ok: false, size: 0, error: err };
+    } finally {
+      span.end();
     }
-  }
+  });
+}
 
-  const fetchMs = Date.now() - startedAt;
-  cacheMetrics.fetchCount += 1;
-  cacheMetrics.totalFetchMs += fetchMs;
+async function loadSurahTexts(surahNum: number): Promise<LoadResult> {
+  return tracer.startActiveSpan(
+    "surah_text.load",
+    { attributes: { "surah_text.surah": surahNum } },
+    async (rootSpan): Promise<LoadResult> => {
+      const cached = surahTextCache.get(surahNum);
+      if (cached) {
+        cacheMetrics.hits += 1;
+        rootSpan.setAttributes({
+          "surah_text.cache_status": "hit",
+          "surah_text.ayahs": cached.size,
+          "surah_text.hit_rate": cacheMetrics.hitRate,
+          "surah_text.hits": cacheMetrics.hits,
+          "surah_text.misses": cacheMetrics.misses,
+        });
+        rootSpan.addEvent("cache.hit", { surah: surahNum, ayahs: cached.size });
+        console.log(
+          `[surah-text] HIT surah=${surahNum} ayahs=${cached.size} ` +
+            `hitRate=${(cacheMetrics.hitRate * 100).toFixed(1)}% ` +
+            `hits=${cacheMetrics.hits} misses=${cacheMetrics.misses}`,
+        );
+        rootSpan.end();
+        return { texts: cached, cacheStatus: "hit", fetchMs: 0, source: "quran.com" };
+      }
 
-  // Only cache successful loads so transient failures can retry.
-  if (texts.size > 0) surahTextCache.set(surahNum, texts);
+      cacheMetrics.misses += 1;
+      rootSpan.addEvent("cache.miss", { surah: surahNum });
+      const texts = new Map<number, string>();
+      let source: LoadResult["source"] = "none";
+      const startedAt = Date.now();
 
-  console.log(
-    `[surah-text] MISS surah=${surahNum} source=${source} ayahs=${texts.size} ` +
-      `fetchMs=${fetchMs} avgFetchMs=${cacheMetrics.avgFetchMs.toFixed(0)} ` +
-      `hitRate=${(cacheMetrics.hitRate * 100).toFixed(1)}% ` +
-      `hits=${cacheMetrics.hits} misses=${cacheMetrics.misses} ` +
-      `errors=${cacheMetrics.fetchErrors} cachedSurahs=${surahTextCache.size}`,
+      // Primary: api.quran.com (Madina Hafs)
+      const primary = await fetchSource(
+        "surah_text.fetch.quran_com",
+        { "surah_text.surah": surahNum, "http.url": "api.quran.com" },
+        async () => {
+          const res = await fetch(
+            `https://api.quran.com/api/v4/quran/verses/uthmani?chapter_number=${surahNum}`,
+            { cf: { cacheTtl: 86400, cacheEverything: true } } as RequestInit,
+          );
+          if (!res.ok) return { ok: false, size: 0, status: res.status };
+          const json = (await res.json()) as {
+            verses?: Array<{ verse_key: string; text_uthmani: string }>;
+          };
+          for (const v of json.verses ?? []) {
+            const [, ayahStr] = v.verse_key.split(":");
+            const n = Number(ayahStr);
+            if (n) texts.set(n, normalizeArabic(v.text_uthmani));
+          }
+          return { ok: true, size: texts.size, status: res.status };
+        },
+      );
+      if (primary.ok && texts.size > 0) source = "quran.com";
+      else if (!primary.ok) {
+        cacheMetrics.fetchErrors += 1;
+        console.warn(`[surah-text] primary failed surah=${surahNum} status=${primary.status}`);
+      }
+
+      // Fallback: alquran.cloud Hafs Uthmani
+      if (texts.size === 0) {
+        const fallback = await fetchSource(
+          "surah_text.fetch.alquran_cloud",
+          { "surah_text.surah": surahNum, "http.url": "api.alquran.cloud" },
+          async () => {
+            const res = await fetch(
+              `https://api.alquran.cloud/v1/surah/${surahNum}/quran-uthmani-hafs`,
+              { cf: { cacheTtl: 86400, cacheEverything: true } } as RequestInit,
+            );
+            if (!res.ok) return { ok: false, size: 0, status: res.status };
+            const json = (await res.json()) as {
+              data?: { ayahs?: Array<{ numberInSurah: number; text: string }> };
+            };
+            for (const a of json.data?.ayahs ?? []) {
+              texts.set(a.numberInSurah, normalizeArabic(a.text));
+            }
+            return { ok: true, size: texts.size, status: res.status };
+          },
+        );
+        if (fallback.ok && texts.size > 0) source = "alquran.cloud";
+        else if (!fallback.ok) {
+          cacheMetrics.fetchErrors += 1;
+          console.warn(`[surah-text] fallback failed surah=${surahNum} status=${fallback.status}`);
+        }
+      }
+
+      const fetchMs = Date.now() - startedAt;
+      cacheMetrics.fetchCount += 1;
+      cacheMetrics.totalFetchMs += fetchMs;
+
+      // Only cache successful loads so transient failures can retry.
+      if (texts.size > 0) surahTextCache.set(surahNum, texts);
+
+      rootSpan.setAttributes({
+        "surah_text.cache_status": "miss",
+        "surah_text.source": source,
+        "surah_text.ayahs": texts.size,
+        "surah_text.fetch_ms": fetchMs,
+        "surah_text.avg_fetch_ms": cacheMetrics.avgFetchMs,
+        "surah_text.hit_rate": cacheMetrics.hitRate,
+        "surah_text.hits": cacheMetrics.hits,
+        "surah_text.misses": cacheMetrics.misses,
+        "surah_text.errors": cacheMetrics.fetchErrors,
+        "surah_text.cached_surahs": surahTextCache.size,
+      });
+      if (source === "none") {
+        rootSpan.setStatus({ code: SpanStatusCode.ERROR, message: "no source returned text" });
+      }
+
+      console.log(
+        `[surah-text] MISS surah=${surahNum} source=${source} ayahs=${texts.size} ` +
+          `fetchMs=${fetchMs} avgFetchMs=${cacheMetrics.avgFetchMs.toFixed(0)} ` +
+          `hitRate=${(cacheMetrics.hitRate * 100).toFixed(1)}% ` +
+          `hits=${cacheMetrics.hits} misses=${cacheMetrics.misses} ` +
+          `errors=${cacheMetrics.fetchErrors} cachedSurahs=${surahTextCache.size}`,
+      );
+
+      rootSpan.end();
+      return { texts, cacheStatus: "miss", fetchMs, source };
+    },
   );
-
-  return { texts, cacheStatus: "miss", fetchMs, source };
 }
 
 export const Route = createFileRoute("/api/surah/$id")({
