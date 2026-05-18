@@ -105,10 +105,10 @@ async function fetchSource(
 }
 
 async function loadSurahTexts(surahNum: number): Promise<LoadResult> {
-  return tracer.startActiveSpan<[], Promise<LoadResult>>(
+  return tracer.startActiveSpan(
     "surah_text.load",
     { attributes: { "surah_text.surah": surahNum } },
-    async (rootSpan) => {
+    async (rootSpan): Promise<LoadResult> => {
       const cached = surahTextCache.get(surahNum);
       if (cached) {
         cacheMetrics.hits += 1;
