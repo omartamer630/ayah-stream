@@ -9,6 +9,9 @@ import {
 } from "@tanstack/react-router";
 
 import { Toaster } from "@/components/ui/sonner";
+import { RadioProvider } from "@/components/radio/RadioProvider";
+import { FloatingRadioPlayer } from "@/components/radio/FloatingRadioPlayer";
+
 
 import appCss from "../styles.css?url";
 
@@ -119,8 +122,11 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Outlet />
-      <Toaster />
+      <RadioProvider>
+        <Outlet />
+        <FloatingRadioPlayer />
+        <Toaster />
+      </RadioProvider>
     </QueryClientProvider>
   );
 }
