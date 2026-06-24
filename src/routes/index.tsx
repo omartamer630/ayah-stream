@@ -760,7 +760,7 @@ function Index() {
           </>
         )}
 
-        <footer className="mt-20 pt-10 border-t border-border text-center">
+        <footer className="mt-20 pt-10 border-t border-border text-center space-y-3">
           <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
             {t("Audio courtesy of", "الصوت بإذن من")}{" "}
             <bdi>
@@ -770,7 +770,30 @@ function Index() {
             </bdi>{" "}
             · {t("Cached at the edge", "مخزّن على الحافة")}
           </p>
+          <p className="text-[11px] text-muted-foreground">
+            {t("Made by", "صُنع بواسطة")}{" "}
+            <span className="font-semibold text-foreground">Omar Tamer Abdelaal</span>
+            {" · "}
+            <a
+              href="https://www.linkedin.com/in/omar-tamer03/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[var(--gold)] hover:underline"
+            >
+              LinkedIn
+            </a>
+            {" · "}
+            <a
+              href="https://github.com/omartamer630"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[var(--gold)] hover:underline"
+            >
+              GitHub
+            </a>
+          </p>
         </footer>
+
       </main>
     </div>
   );
