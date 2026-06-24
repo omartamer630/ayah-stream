@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Download, Pause, Play, Loader2, Package, Star, BookOpenText, Moon, Sun, Languages } from "lucide-react";
+import { Download, Pause, Play, Loader2, Package, Star, BookOpenText, Moon, Sun, Languages, SkipBack, SkipForward } from "lucide-react";
 import { SURAHS, RECITERS, ayahAudioUrl, type ReciterId } from "@/lib/quran";
 import { Button } from "@/components/ui/button";
 import {
@@ -50,6 +50,9 @@ function Index() {
   const audioRefs = useRef<Array<HTMLAudioElement | null>>([]);
   const [openText, setOpenText] = useState<Record<number, boolean>>({});
   const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [nowTime, setNowTime] = useState(0);
+  const [nowDur, setNowDur] = useState(0);
+
 
   // Theme: hydrate + persist
   useEffect(() => {
