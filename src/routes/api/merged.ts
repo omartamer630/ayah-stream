@@ -27,9 +27,7 @@ export const Route = createFileRoute("/api/merged")({
 
         const start = Math.max(1, Math.min(rawStart, surah.c));
         const end = Math.max(start, Math.min(rawEnd, surah.c));
-        if (end - start + 1 > 50) {
-          return new Response("Maximum 50 ayahs per merge", { status: 400 });
-        }
+
 
         const indexes = Array.from({ length: end - start + 1 }, (_, i) => start + i);
         let parts: Uint8Array[];
