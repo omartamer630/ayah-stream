@@ -45,6 +45,34 @@ export function FloatingRadioPlayer() {
     } catch {}
   }, []);
 
+  // Keyboard shortcuts: Space = play/pause, M = mute
+  useEffect(() => {
+    const isTypingTarget = (el: EventTarget | null) => {
+      if (!(el instanceof HTMLElement)) return false;
+      const tag = el.tagName;
+      return (
+        tag === "INPUT" ||
+        tag === "TEXTAREA" ||
+        tag === "SELECT" ||
+        el.isContentEditable
+      );
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      if (isTypingTarget(e.target)) return;
+      if (e.code === "Space" || e.key === " ") {
+        e.preventDefault();
+        hasError ? retry() : toggle();
+      } else if (e.key === "m" || e.key === "M") {
+        e.preventDefault();
+        toggleMute();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [toggle, toggleMute, retry, hasError]);
+
+
   const toggleMini = () => {
     setMini((m) => {
       const next = !m;
