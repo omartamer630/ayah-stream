@@ -701,7 +701,72 @@ function Index() {
                   {isAr ? surah.ar : surah.a} · <bdi>{num(ayahs[0].ayah)}–{num(ayahs[ayahs.length - 1].ayah)}</bdi>
                 </h3>
                 <div className="flex-1 h-px bg-border" />
+                <button
+                  onClick={playFromStart}
+                  className="h-9 px-4 rounded-full bg-[var(--gold)] text-[var(--gold-foreground)] text-[10px] font-bold uppercase tracking-[0.15em] flex items-center gap-2 hover:scale-[1.02] transition-transform shrink-0"
+                  aria-label={t("Play full surah continuously", "تشغيل السورة بالكامل")}
+                >
+                  <Play className="w-3.5 h-3.5" fill="currentColor" />
+                  {t("Play full", "تشغيل الكل")}
+                </button>
               </div>
+
+              {/* Sticky continuous now-playing bar */}
+              {playingIdx != null && playingIdx >= 0 && ayahs[playingIdx] && (
+                <div
+                  className="sticky top-2 z-30 mb-4 bg-card/90 backdrop-blur-xl border border-[var(--gold)]/40 rounded-2xl shadow-[var(--shadow-deep)] p-3 flex items-center gap-3"
+                  role="region"
+                  aria-label={t("Now playing", "قيد التشغيل")}
+                >
+                  <button
+                    onClick={playPrev}
+                    disabled={playingIdx <= 0}
+                    aria-label={t("Previous ayah", "الآية السابقة")}
+                    className="h-9 w-9 rounded-full flex items-center justify-center text-foreground hover:bg-secondary disabled:opacity-30 disabled:hover:bg-transparent transition-colors shrink-0"
+                  >
+                    <SkipBack className="w-4 h-4" fill="currentColor" />
+                  </button>
+                  <button
+                    onClick={() => togglePlay(playingIdx)}
+                    aria-label={t("Pause", "إيقاف")}
+                    className="h-10 w-10 rounded-full bg-[var(--gold)] text-[var(--gold-foreground)] flex items-center justify-center shrink-0 shadow-[var(--shadow-glow)]"
+                  >
+                    <Pause className="w-4 h-4" fill="currentColor" />
+                  </button>
+                  <button
+                    onClick={playNext}
+                    disabled={playingIdx + 1 >= ayahs.length}
+                    aria-label={t("Next ayah", "الآية التالية")}
+                    className="h-9 w-9 rounded-full flex items-center justify-center text-foreground hover:bg-secondary disabled:opacity-30 disabled:hover:bg-transparent transition-colors shrink-0"
+                  >
+                    <SkipForward className="w-4 h-4" fill="currentColor" />
+                  </button>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground truncate">
+                        {isAr ? surah.ar : surah.a} ·{" "}
+                        <bdi>
+                          {t("Ayah", "آية")} {num(ayahs[playingIdx].ayah)}
+                        </bdi>
+                      </span>
+                      <span className="text-[10px] tabular-nums text-muted-foreground shrink-0">
+                        <bdi>
+                          {num(playingIdx + 1)} / {num(ayahs.length)}
+                        </bdi>
+                      </span>
+                    </div>
+                    <div className="h-1.5 rounded-full bg-secondary overflow-hidden">
+                      <div
+                        className="h-full bg-[var(--gold)] transition-[width] duration-150"
+                        style={{
+                          width: `${nowDur > 0 ? Math.min(100, (nowTime / nowDur) * 100) : 0}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
 
               <ul className="space-y-4">
                 {ayahs.map((a, idx) => {
