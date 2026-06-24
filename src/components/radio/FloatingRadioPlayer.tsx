@@ -224,8 +224,43 @@ export function FloatingRadioPlayer() {
                 Stream unavailable. Retrying automatically…
               </p>
             )}
+
+            <div className="pt-1 border-t border-border/60 text-[10px] text-muted-foreground flex items-center justify-between gap-2">
+              <span className="truncate">
+                Made by{" "}
+                <a
+                  href="https://www.linkedin.com/in/omar-tamer03/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-foreground hover:underline"
+                >
+                  Omar Tamer Abdelaal
+                </a>
+              </span>
+              <span className="flex items-center gap-2 shrink-0">
+                <a
+                  href="https://www.linkedin.com/in/omar-tamer03/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-foreground hover:underline"
+                  aria-label="Omar Tamer Abdelaal on LinkedIn"
+                >
+                  LinkedIn
+                </a>
+                <a
+                  href="https://github.com/omartamer630"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-foreground hover:underline"
+                  aria-label="Omar Tamer Abdelaal on GitHub"
+                >
+                  GitHub
+                </a>
+              </span>
+            </div>
           </div>
         )}
+
       </div>
     </div>
   );
