@@ -222,6 +222,8 @@ function Index() {
     if (merged && idx !== -1) merged.pause();
     const el = audioRefs.current[idx];
     if (!el) return;
+    setNowTime(0);
+    setNowDur(Number.isFinite(el.duration) ? el.duration : 0);
     el.play();
     setPlayingIdx(idx);
   };
@@ -236,6 +238,30 @@ function Index() {
       playIdx(idx);
     }
   };
+
+  const playPrev = () => {
+    if (playingIdx == null || playingIdx <= 0) return;
+    playIdx(playingIdx - 1);
+  };
+  const playNext = () => {
+    if (playingIdx == null || playingIdx + 1 >= ayahs.length) return;
+    playIdx(playingIdx + 1);
+  };
+  const playFromStart = () => {
+    if (ayahs.length === 0) return;
+    setPlayMode("next");
+    playIdx(0);
+  };
+
+  // Auto-scroll currently playing ayah into view
+  useEffect(() => {
+    if (playingIdx == null || playingIdx < 0) return;
+    const a = ayahs[playingIdx];
+    if (!a) return;
+    const el = document.getElementById(`ayah-${a.ayah}`);
+    el?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [playingIdx, ayahs]);
+
 
   const handleEnded = (idx: number) => {
     if (playMode === "one") {
