@@ -820,10 +820,30 @@ function Index() {
                               }}
                               src={a.audioUrl}
                               onEnded={() => handleEnded(idx)}
+                              onPlay={() => setPlayingIdx(idx)}
+                              onPause={() => {
+                                if (playingIdx === idx) {
+                                  const el = audioRefs.current[idx];
+                                  if (el && el.ended === false && el.currentTime > 0 && el.paused) {
+                                    setPlayingIdx(null);
+                                  }
+                                }
+                              }}
+                              onLoadedMetadata={(e) => {
+                                if (playingIdx === idx) {
+                                  setNowDur((e.currentTarget.duration as number) || 0);
+                                }
+                              }}
+                              onTimeUpdate={(e) => {
+                                if (playingIdx === idx) {
+                                  setNowTime(e.currentTarget.currentTime || 0);
+                                }
+                              }}
                               controls
                               preload="none"
                               className="flex-1 h-9"
                             />
+
                             <button
                               type="button"
                               onClick={() =>
