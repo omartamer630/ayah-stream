@@ -774,10 +774,12 @@ function Index() {
                   return (
                     <li
                       key={a.ayah}
+                      id={`ayah-${a.ayah}`}
                       className={`bg-card border border-border rounded-2xl overflow-hidden transition-all duration-300 ${
                         isPlaying ? "shadow-[var(--shadow-deep)] border-[var(--gold)]/40" : "hover:shadow-[var(--shadow-soft)]"
                       }`}
                     >
+
                       <div className="flex items-stretch">
                         <div
                           className="w-14 md:w-16 bg-secondary border-r border-border flex items-center justify-center text-muted-foreground text-lg shrink-0"
