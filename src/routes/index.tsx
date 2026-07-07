@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Download, Pause, Play, Loader2, Package, Star, BookOpenText, Moon, Sun, Languages, SkipBack, SkipForward, Bookmark, BookmarkCheck, RotateCcw, X } from "lucide-react";
+import { Download, Pause, Play, Loader2, Package, Star, BookOpenText, Moon, Sun, Languages, SkipBack, SkipForward, Bookmark, BookmarkCheck, RotateCcw, X, GraduationCap, Repeat } from "lucide-react";
 import { SURAHS, RECITERS, ayahAudioUrl, type ReciterId } from "@/lib/quran";
 import { Button } from "@/components/ui/button";
 import {
@@ -72,6 +72,12 @@ function Index() {
   const [resume, setResume] = useState<ResumeState | null>(null);
   const [bookmarks, setBookmarks] = useState<BookmarkItem[]>([]);
   const [pendingPlayAyah, setPendingPlayAyah] = useState<number | null>(null);
+  // Memorization / Hifz mode
+  const [memMode, setMemMode] = useState(false);
+  const [memFrom, setMemFrom] = useState(1);
+  const [memTo, setMemTo] = useState(1);
+  const [memRepeats, setMemRepeats] = useState(3);
+  const [memCurrentRep, setMemCurrentRep] = useState(1);
 
 
   // Theme: hydrate + persist
@@ -363,8 +369,57 @@ function Index() {
     el?.scrollIntoView({ behavior: "smooth", block: "center" });
   }, [playingIdx, ayahs]);
 
+  // Reset memorization range whenever loaded ayahs change
+  useEffect(() => {
+    if (ayahs.length === 0) return;
+    setMemFrom(ayahs[0].ayah);
+    setMemTo(Math.min(ayahs[0].ayah, ayahs[ayahs.length - 1].ayah));
+    setMemCurrentRep(1);
+  }, [ayahs]);
+
 
   const handleEnded = (idx: number) => {
+    // Memorization mode takes precedence
+    if (memMode && ayahs.length > 0) {
+      const cur = ayahs[idx];
+      if (cur) {
+        // If we are still inside the current range, advance ayah-by-ayah
+        if (cur.ayah < memTo) {
+          const nextIdx = ayahs.findIndex((a) => a.ayah === cur.ayah + 1);
+          if (nextIdx >= 0) {
+            playIdx(nextIdx);
+            return;
+          }
+        }
+        // End of range reached — repeat or advance
+        if (memCurrentRep < memRepeats) {
+          setMemCurrentRep((n) => n + 1);
+          const startIdx = ayahs.findIndex((a) => a.ayah === memFrom);
+          if (startIdx >= 0) {
+            playIdx(startIdx);
+            return;
+          }
+        }
+        // Advance to next range of the same size
+        const size = memTo - memFrom + 1;
+        const nextFrom = memTo + 1;
+        const nextTo = Math.min(nextFrom + size - 1, ayahs[ayahs.length - 1].ayah);
+        const nextIdx = ayahs.findIndex((a) => a.ayah === nextFrom);
+        if (nextIdx >= 0 && nextFrom <= ayahs[ayahs.length - 1].ayah) {
+          setMemFrom(nextFrom);
+          setMemTo(nextTo);
+          setMemCurrentRep(1);
+          playIdx(nextIdx);
+          return;
+        }
+        // Nothing left
+        toast.success(t("Memorization session complete", "اكتملت جلسة الحفظ"));
+        setPlayingIdx(null);
+        setMemCurrentRep(1);
+        return;
+      }
+    }
+
     if (playMode === "one") {
       const el = audioRefs.current[idx];
       if (el) {
@@ -921,6 +976,127 @@ function Index() {
                   {t("Play full", "تشغيل الكل")}
                 </button>
               </div>
+
+              {/* Memorization / Hifz mode panel */}
+              {(() => {
+                const firstAyah = ayahs[0].ayah;
+                const lastAyah = ayahs[ayahs.length - 1].ayah;
+                return (
+                  <div
+                    className={`mb-5 rounded-2xl border p-4 transition-colors ${
+                      memMode
+                        ? "bg-card border-[var(--gold)]/40 shadow-[var(--shadow-soft)]"
+                        : "bg-secondary/50 border-border"
+                    }`}
+                  >
+                    <div className="flex flex-wrap items-center gap-3">
+                      <button
+                        onClick={() => {
+                          setMemMode((v) => !v);
+                          setMemCurrentRep(1);
+                        }}
+                        aria-pressed={memMode}
+                        className={`h-9 px-3 rounded-lg flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.15em] transition-colors shrink-0 ${
+                          memMode
+                            ? "bg-[var(--gold)] text-[var(--gold-foreground)]"
+                            : "bg-card border border-border text-foreground hover:bg-background"
+                        }`}
+                      >
+                        <GraduationCap className="w-3.5 h-3.5" />
+                        {t("Hifz mode", "وضع الحفظ")}
+                      </button>
+
+                      <div className="flex items-center gap-2">
+                        <Label className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
+                          {t("From", "من")}
+                        </Label>
+                        <Input
+                          type="number"
+                          min={firstAyah}
+                          max={lastAyah}
+                          value={memFrom}
+                          disabled={!memMode}
+                          onChange={(e) => {
+                            const v = Math.max(firstAyah, Math.min(Number(e.target.value) || firstAyah, lastAyah));
+                            setMemFrom(v);
+                            if (memTo < v) setMemTo(v);
+                            setMemCurrentRep(1);
+                          }}
+                          className="h-9 w-20 bg-card border-border rounded-lg tabular-nums text-sm"
+                        />
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <Label className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
+                          {t("To", "إلى")}
+                        </Label>
+                        <Input
+                          type="number"
+                          min={memFrom}
+                          max={lastAyah}
+                          value={memTo}
+                          disabled={!memMode}
+                          onChange={(e) => {
+                            const v = Math.max(memFrom, Math.min(Number(e.target.value) || memFrom, lastAyah));
+                            setMemTo(v);
+                            setMemCurrentRep(1);
+                          }}
+                          className="h-9 w-20 bg-card border-border rounded-lg tabular-nums text-sm"
+                        />
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <Label className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground flex items-center gap-1">
+                          <Repeat className="w-3 h-3" />
+                          {t("Repeats", "التكرار")}
+                        </Label>
+                        <Input
+                          type="number"
+                          min={1}
+                          max={99}
+                          value={memRepeats}
+                          disabled={!memMode}
+                          onChange={(e) => {
+                            const v = Math.max(1, Math.min(Number(e.target.value) || 1, 99));
+                            setMemRepeats(v);
+                          }}
+                          className="h-9 w-20 bg-card border-border rounded-lg tabular-nums text-sm"
+                        />
+                      </div>
+
+                      <button
+                        disabled={!memMode}
+                        onClick={() => {
+                          const startIdx = ayahs.findIndex((a) => a.ayah === memFrom);
+                          if (startIdx < 0) return;
+                          setMemCurrentRep(1);
+                          playIdx(startIdx);
+                        }}
+                        className="h-9 px-4 rounded-lg bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-[0.15em] flex items-center gap-2 disabled:opacity-40 hover:bg-primary/90 transition-colors shrink-0 ml-auto"
+                      >
+                        <Play className="w-3.5 h-3.5" fill="currentColor" />
+                        {t("Start", "ابدأ")}
+                      </button>
+                    </div>
+
+                    {memMode && (
+                      <div className="mt-3 pt-3 border-t border-border flex items-center justify-between gap-3 text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
+                        <span>
+                          <bdi>
+                            {t("Range", "النطاق")} {num(memFrom)}–{num(memTo)}
+                          </bdi>
+                        </span>
+                        <span className="text-[var(--gold)]">
+                          <bdi>
+                            {t("Rep", "تكرار")} {num(memCurrentRep)} / {num(memRepeats)}
+                          </bdi>
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+
 
               {/* Sticky continuous now-playing bar */}
               {playingIdx != null && playingIdx >= 0 && ayahs[playingIdx] && (
