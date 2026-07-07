@@ -485,8 +485,62 @@ function Index() {
           </p>
         </section>
 
+        {/* Resume banner */}
+        {hydrated && resume && (() => {
+          const rSurah = SURAHS.find((s) => s.n === resume.surah);
+          const rRec = RECITERS.find((r) => r.id === resume.reciter);
+          if (!rSurah) return null;
+          return (
+            <section className="mb-6">
+              <div className="relative bg-card border border-[var(--gold)]/40 rounded-2xl p-4 md:p-5 shadow-[var(--shadow-soft)] flex flex-col md:flex-row items-start md:items-center gap-4">
+                <button
+                  onClick={() =>
+                    jumpTo(resume.surah, resume.ayah, resume.reciter, {
+                      start: resume.start,
+                      end: resume.end,
+                    })
+                  }
+                  className="w-12 h-12 rounded-full bg-[var(--gold)] text-[var(--gold-foreground)] flex items-center justify-center hover:scale-105 transition-transform shrink-0 shadow-[var(--shadow-glow)]"
+                  aria-label={t("Resume last position", "استئناف من آخر موضع")}
+                >
+                  <Play className="w-5 h-5 ml-0.5" fill="currentColor" />
+                </button>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--gold)] mb-1 flex items-center gap-1.5">
+                    <RotateCcw className="w-3 h-3" />
+                    {t("Resume where you left off", "استئناف من حيث توقفت")}
+                  </div>
+                  <div className="text-sm text-foreground truncate">
+                    <span className="font-semibold" style={{ fontFamily: isAr ? "var(--font-arabic)" : undefined }}>
+                      {isAr ? rSurah.ar : rSurah.a}
+                    </span>
+                    <span className="text-muted-foreground mx-2">·</span>
+                    <span className="tabular-nums">
+                      <bdi>{t("Ayah", "آية")} {num(resume.ayah)}</bdi>
+                    </span>
+                    {rRec && (
+                      <>
+                        <span className="text-muted-foreground mx-2">·</span>
+                        <span className="text-muted-foreground text-xs">{rRec.name}</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+                <button
+                  onClick={clearResume}
+                  aria-label={t("Dismiss", "إغلاق")}
+                  className="absolute top-3 right-3 md:static w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors shrink-0"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </section>
+          );
+        })()}
+
         {/* Control panel */}
         <section className="relative bg-secondary border border-border rounded-3xl p-6 md:p-8 shadow-[var(--shadow-soft)] mb-10">
+
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mb-8">
             <div className="md:col-span-5 space-y-2.5">
               <div className="flex justify-between items-end">
