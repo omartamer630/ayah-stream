@@ -17,7 +17,7 @@ Tracking suggested improvements. Implement top-to-bottom.
 - [ ] **Reciter previews** — 5-second sample on hover.
 
 ## Listening features
-- [ ] **Repeat range / memorization mode** — loop ayah N times, then move to next (hifz mode).
+- [ ] **Playback speed** (0.75×–1.5×).
 - [ ] **Playback speed** (0.75×–1.5×).
 - [ ] **A–B loop** for a single verse.
 - [ ] **Sleep timer** for the Egyptian Quran Radio.
