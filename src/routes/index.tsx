@@ -369,6 +369,14 @@ function Index() {
     el?.scrollIntoView({ behavior: "smooth", block: "center" });
   }, [playingIdx, ayahs]);
 
+  // Reset memorization range whenever loaded ayahs change
+  useEffect(() => {
+    if (ayahs.length === 0) return;
+    setMemFrom(ayahs[0].ayah);
+    setMemTo(Math.min(ayahs[0].ayah, ayahs[ayahs.length - 1].ayah));
+    setMemCurrentRep(1);
+  }, [ayahs]);
+
 
   const handleEnded = (idx: number) => {
     if (playMode === "one") {
