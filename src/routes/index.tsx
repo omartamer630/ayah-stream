@@ -316,6 +316,44 @@ function Index() {
     playIdx(0);
   };
 
+  // Jump to a specific surah/ayah/reciter (used by Resume + Bookmarks)
+  const jumpTo = async (
+    s: number,
+    ayahN: number,
+    rec: ReciterId,
+    range?: { start: number; end: number },
+    autoplay = true,
+  ) => {
+    const surahDef = SURAHS.find((x) => x.n === s);
+    if (!surahDef) return;
+    const st = Math.max(1, Math.min(range?.start ?? ayahN, surahDef.c));
+    const en = Math.max(st, Math.min(range?.end ?? Math.min(ayahN + 6, surahDef.c), surahDef.c));
+    const safeAyah = Math.min(Math.max(ayahN, st), en);
+    setSurahNum(s);
+    setStart(st);
+    setEnd(en);
+    setReciter(rec);
+    const data = await fetchAyahsWith(s, st, en, rec);
+    if (data && autoplay) setPendingPlayAyah(safeAyah);
+  };
+
+  // When ayahs load & a pending ayah is queued, play it once audio refs mount
+  useEffect(() => {
+    if (pendingPlayAyah == null || ayahs.length === 0) return;
+    const i = ayahs.findIndex((a) => a.ayah === pendingPlayAyah);
+    if (i < 0) {
+      setPendingPlayAyah(null);
+      return;
+    }
+    const timer = setTimeout(() => {
+      playIdx(i);
+      setPendingPlayAyah(null);
+    }, 150);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingPlayAyah, ayahs]);
+
+
   // Auto-scroll currently playing ayah into view
   useEffect(() => {
     if (playingIdx == null || playingIdx < 0) return;
