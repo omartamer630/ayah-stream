@@ -72,6 +72,12 @@ function Index() {
   const [resume, setResume] = useState<ResumeState | null>(null);
   const [bookmarks, setBookmarks] = useState<BookmarkItem[]>([]);
   const [pendingPlayAyah, setPendingPlayAyah] = useState<number | null>(null);
+  // Memorization / Hifz mode
+  const [memMode, setMemMode] = useState(false);
+  const [memFrom, setMemFrom] = useState(1);
+  const [memTo, setMemTo] = useState(1);
+  const [memRepeats, setMemRepeats] = useState(3);
+  const [memCurrentRep, setMemCurrentRep] = useState(1);
 
 
   // Theme: hydrate + persist
