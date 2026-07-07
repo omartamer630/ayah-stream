@@ -1068,6 +1068,27 @@ function Index() {
                                 ? t("Hide text", "إخفاء")
                                 : t("Show text", "إظهار")}
                             </button>
+                            <button
+                              type="button"
+                              onClick={() => toggleBookmark(surahNum, a.ayah, reciter)}
+                              aria-pressed={isBookmarked(surahNum, a.ayah, reciter)}
+                              aria-label={
+                                isBookmarked(surahNum, a.ayah, reciter)
+                                  ? t("Remove bookmark", "إزالة الإشارة")
+                                  : t("Add bookmark", "إضافة إشارة مرجعية")
+                              }
+                              className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors shrink-0 ${
+                                isBookmarked(surahNum, a.ayah, reciter)
+                                  ? "text-[var(--gold)] hover:bg-secondary"
+                                  : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                              }`}
+                            >
+                              {isBookmarked(surahNum, a.ayah, reciter) ? (
+                                <BookmarkCheck className="w-4 h-4" fill="currentColor" />
+                              ) : (
+                                <Bookmark className="w-4 h-4" />
+                              )}
+                            </button>
                             <a
                               href={a.audioUrl}
                               download={`${String(surahNum).padStart(3, "0")}-${String(a.ayah).padStart(3, "0")}.mp3`}
