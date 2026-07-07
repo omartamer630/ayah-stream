@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Download, Pause, Play, Loader2, Package, Star, BookOpenText, Moon, Sun, Languages, SkipBack, SkipForward } from "lucide-react";
+import { Download, Pause, Play, Loader2, Package, Star, BookOpenText, Moon, Sun, Languages, SkipBack, SkipForward, Bookmark, BookmarkCheck, RotateCcw, X } from "lucide-react";
 import { SURAHS, RECITERS, ayahAudioUrl, type ReciterId } from "@/lib/quran";
 import { Button } from "@/components/ui/button";
 import {
@@ -34,6 +34,23 @@ interface AyahItem {
   text?: string;
 }
 
+interface ResumeState {
+  surah: number;
+  ayah: number;
+  reciter: ReciterId;
+  start: number;
+  end: number;
+  at: number;
+}
+
+interface BookmarkItem {
+  id: string; // `${surah}-${ayah}-${reciter}`
+  surah: number;
+  ayah: number;
+  reciter: ReciterId;
+  savedAt: number;
+}
+
 function Index() {
   const [surahNum, setSurahNum] = useState<number>(1);
   const [start, setStart] = useState<number>(1);
@@ -52,6 +69,9 @@ function Index() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [nowTime, setNowTime] = useState(0);
   const [nowDur, setNowDur] = useState(0);
+  const [resume, setResume] = useState<ResumeState | null>(null);
+  const [bookmarks, setBookmarks] = useState<BookmarkItem[]>([]);
+  const [pendingPlayAyah, setPendingPlayAyah] = useState<number | null>(null);
 
 
   // Theme: hydrate + persist
@@ -138,8 +158,41 @@ function Index() {
         })),
       );
     } catch {}
+    try {
+      const rawResume = localStorage.getItem("quran-resume");
+      if (rawResume) setResume(JSON.parse(rawResume));
+      const rawBm = localStorage.getItem("quran-bookmarks");
+      if (rawBm) setBookmarks(JSON.parse(rawBm));
+    } catch {}
     setHydrated(true);
   }, []);
+
+  const saveResume = (surahN: number, ayahN: number, rec: ReciterId, st: number, en: number) => {
+    const r: ResumeState = { surah: surahN, ayah: ayahN, reciter: rec, start: st, end: en, at: Date.now() };
+    setResume(r);
+    try { localStorage.setItem("quran-resume", JSON.stringify(r)); } catch {}
+  };
+
+  const clearResume = () => {
+    setResume(null);
+    try { localStorage.removeItem("quran-resume"); } catch {}
+  };
+
+  const bookmarkId = (s: number, a: number, r: ReciterId) => `${s}-${a}-${r}`;
+  const isBookmarked = (s: number, a: number, r: ReciterId) =>
+    bookmarks.some((b) => b.id === bookmarkId(s, a, r));
+
+  const toggleBookmark = (s: number, a: number, r: ReciterId) => {
+    const id = bookmarkId(s, a, r);
+    setBookmarks((prev) => {
+      const exists = prev.some((b) => b.id === id);
+      const next = exists
+        ? prev.filter((b) => b.id !== id)
+        : [{ id, surah: s, ayah: a, reciter: r, savedAt: Date.now() }, ...prev];
+      try { localStorage.setItem("quran-bookmarks", JSON.stringify(next)); } catch {}
+      return next;
+    });
+  };
 
   // Persist selections
   useEffect(() => {
@@ -193,26 +246,34 @@ function Index() {
     if (end > surah.c) setEnd(surah.c);
   }, [surahNum, surah.c, start, end]);
 
-  const fetchAyahs = async () => {
-    if (start < 1 || end < start || end > surah.c) {
-      toast.error(`Invalid range. ${surah.a} has ${surah.c} ayahs.`);
-      return;
+  const fetchAyahsWith = async (
+    s: number,
+    st: number,
+    en: number,
+    rec: ReciterId,
+  ): Promise<AyahItem[] | null> => {
+    const surahDef = SURAHS.find((x) => x.n === s);
+    if (!surahDef || st < 1 || en < st || en > surahDef.c) {
+      toast.error(`Invalid range.`);
+      return null;
     }
     setLoading(true);
     setPlayingIdx(null);
     try {
-      const res = await fetch(
-        `/api/surah/${surahNum}?start=${start}&end=${end}&reciter=${reciter}`,
-      );
+      const res = await fetch(`/api/surah/${s}?start=${st}&end=${en}&reciter=${rec}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setAyahs(data.ayahs);
+      return data.ayahs as AyahItem[];
     } catch (e) {
       toast.error(`Failed to load: ${(e as Error).message}`);
+      return null;
     } finally {
       setLoading(false);
     }
   };
+
+  const fetchAyahs = () => fetchAyahsWith(surahNum, start, end, reciter);
 
   const playIdx = (idx: number) => {
     audioRefs.current.forEach((a, i) => {
@@ -226,6 +287,8 @@ function Index() {
     setNowDur(Number.isFinite(el.duration) ? el.duration : 0);
     el.play();
     setPlayingIdx(idx);
+    const a = ayahs[idx];
+    if (a) saveResume(surahNum, a.ayah, reciter, start, end);
   };
 
   const togglePlay = (idx: number) => {
@@ -252,6 +315,44 @@ function Index() {
     setPlayMode("next");
     playIdx(0);
   };
+
+  // Jump to a specific surah/ayah/reciter (used by Resume + Bookmarks)
+  const jumpTo = async (
+    s: number,
+    ayahN: number,
+    rec: ReciterId,
+    range?: { start: number; end: number },
+    autoplay = true,
+  ) => {
+    const surahDef = SURAHS.find((x) => x.n === s);
+    if (!surahDef) return;
+    const st = Math.max(1, Math.min(range?.start ?? ayahN, surahDef.c));
+    const en = Math.max(st, Math.min(range?.end ?? Math.min(ayahN + 6, surahDef.c), surahDef.c));
+    const safeAyah = Math.min(Math.max(ayahN, st), en);
+    setSurahNum(s);
+    setStart(st);
+    setEnd(en);
+    setReciter(rec);
+    const data = await fetchAyahsWith(s, st, en, rec);
+    if (data && autoplay) setPendingPlayAyah(safeAyah);
+  };
+
+  // When ayahs load & a pending ayah is queued, play it once audio refs mount
+  useEffect(() => {
+    if (pendingPlayAyah == null || ayahs.length === 0) return;
+    const i = ayahs.findIndex((a) => a.ayah === pendingPlayAyah);
+    if (i < 0) {
+      setPendingPlayAyah(null);
+      return;
+    }
+    const timer = setTimeout(() => {
+      playIdx(i);
+      setPendingPlayAyah(null);
+    }, 150);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingPlayAyah, ayahs]);
+
 
   // Auto-scroll currently playing ayah into view
   useEffect(() => {
@@ -384,8 +485,62 @@ function Index() {
           </p>
         </section>
 
+        {/* Resume banner */}
+        {hydrated && resume && (() => {
+          const rSurah = SURAHS.find((s) => s.n === resume.surah);
+          const rRec = RECITERS.find((r) => r.id === resume.reciter);
+          if (!rSurah) return null;
+          return (
+            <section className="mb-6">
+              <div className="relative bg-card border border-[var(--gold)]/40 rounded-2xl p-4 md:p-5 shadow-[var(--shadow-soft)] flex flex-col md:flex-row items-start md:items-center gap-4">
+                <button
+                  onClick={() =>
+                    jumpTo(resume.surah, resume.ayah, resume.reciter, {
+                      start: resume.start,
+                      end: resume.end,
+                    })
+                  }
+                  className="w-12 h-12 rounded-full bg-[var(--gold)] text-[var(--gold-foreground)] flex items-center justify-center hover:scale-105 transition-transform shrink-0 shadow-[var(--shadow-glow)]"
+                  aria-label={t("Resume last position", "استئناف من آخر موضع")}
+                >
+                  <Play className="w-5 h-5 ml-0.5" fill="currentColor" />
+                </button>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--gold)] mb-1 flex items-center gap-1.5">
+                    <RotateCcw className="w-3 h-3" />
+                    {t("Resume where you left off", "استئناف من حيث توقفت")}
+                  </div>
+                  <div className="text-sm text-foreground truncate">
+                    <span className="font-semibold" style={{ fontFamily: isAr ? "var(--font-arabic)" : undefined }}>
+                      {isAr ? rSurah.ar : rSurah.a}
+                    </span>
+                    <span className="text-muted-foreground mx-2">·</span>
+                    <span className="tabular-nums">
+                      <bdi>{t("Ayah", "آية")} {num(resume.ayah)}</bdi>
+                    </span>
+                    {rRec && (
+                      <>
+                        <span className="text-muted-foreground mx-2">·</span>
+                        <span className="text-muted-foreground text-xs">{rRec.name}</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+                <button
+                  onClick={clearResume}
+                  aria-label={t("Dismiss", "إغلاق")}
+                  className="absolute top-3 right-3 md:static w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors shrink-0"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </section>
+          );
+        })()}
+
         {/* Control panel */}
         <section className="relative bg-secondary border border-border rounded-3xl p-6 md:p-8 shadow-[var(--shadow-soft)] mb-10">
+
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mb-8">
             <div className="md:col-span-5 space-y-2.5">
               <div className="flex justify-between items-end">
@@ -587,6 +742,62 @@ function Index() {
             </div>
           </div>
         </section>
+
+        {/* Bookmarks strip */}
+        {hydrated && bookmarks.length > 0 && (
+          <section className="mb-10">
+            <div className="flex items-center gap-3 mb-3">
+              <h3 className="text-[10px] font-bold uppercase tracking-[0.25em] text-muted-foreground flex items-center gap-1.5">
+                <BookmarkCheck className="w-3.5 h-3.5 text-[var(--gold)]" />
+                {t("Bookmarks", "الإشارات المرجعية")}
+              </h3>
+              <div className="flex-1 h-px bg-border" />
+              <span className="text-[10px] text-muted-foreground tabular-nums">
+                <bdi>{num(bookmarks.length)}</bdi>
+              </span>
+            </div>
+            <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
+              {bookmarks.map((b) => {
+                const bSurah = SURAHS.find((s) => s.n === b.surah);
+                if (!bSurah) return null;
+                return (
+                  <div
+                    key={b.id}
+                    className="group shrink-0 bg-card border border-border rounded-xl p-3 min-w-[180px] max-w-[220px] hover:border-[var(--gold)]/40 transition-colors flex items-center gap-3"
+                  >
+                    <button
+                      onClick={() => jumpTo(b.surah, b.ayah, b.reciter)}
+                      className="w-9 h-9 rounded-full bg-secondary hover:bg-[var(--gold)] hover:text-[var(--gold-foreground)] flex items-center justify-center transition-colors shrink-0"
+                      aria-label={t("Play bookmark", "تشغيل الإشارة")}
+                    >
+                      <Play className="w-4 h-4 ml-0.5" fill="currentColor" />
+                    </button>
+                    <div className="flex-1 min-w-0">
+                      <div
+                        className="text-sm font-semibold text-foreground truncate"
+                        style={{ fontFamily: isAr ? "var(--font-arabic)" : undefined }}
+                      >
+                        {isAr ? bSurah.ar : bSurah.a}
+                      </div>
+                      <div className="text-[10px] text-muted-foreground tabular-nums">
+                        <bdi>{t("Ayah", "آية")} {num(b.ayah)}</bdi>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => toggleBookmark(b.surah, b.ayah, b.reciter)}
+                      aria-label={t("Remove bookmark", "إزالة الإشارة")}
+                      className="w-7 h-7 rounded-md flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors opacity-0 group-hover:opacity-100 shrink-0"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+
 
         {ayahs.length > 0 && (
           <>
@@ -856,6 +1067,27 @@ function Index() {
                               {openText[a.ayah]
                                 ? t("Hide text", "إخفاء")
                                 : t("Show text", "إظهار")}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => toggleBookmark(surahNum, a.ayah, reciter)}
+                              aria-pressed={isBookmarked(surahNum, a.ayah, reciter)}
+                              aria-label={
+                                isBookmarked(surahNum, a.ayah, reciter)
+                                  ? t("Remove bookmark", "إزالة الإشارة")
+                                  : t("Add bookmark", "إضافة إشارة مرجعية")
+                              }
+                              className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors shrink-0 ${
+                                isBookmarked(surahNum, a.ayah, reciter)
+                                  ? "text-[var(--gold)] hover:bg-secondary"
+                                  : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                              }`}
+                            >
+                              {isBookmarked(surahNum, a.ayah, reciter) ? (
+                                <BookmarkCheck className="w-4 h-4" fill="currentColor" />
+                              ) : (
+                                <Bookmark className="w-4 h-4" />
+                              )}
                             </button>
                             <a
                               href={a.audioUrl}
