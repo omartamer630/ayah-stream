@@ -246,26 +246,34 @@ function Index() {
     if (end > surah.c) setEnd(surah.c);
   }, [surahNum, surah.c, start, end]);
 
-  const fetchAyahs = async () => {
-    if (start < 1 || end < start || end > surah.c) {
-      toast.error(`Invalid range. ${surah.a} has ${surah.c} ayahs.`);
-      return;
+  const fetchAyahsWith = async (
+    s: number,
+    st: number,
+    en: number,
+    rec: ReciterId,
+  ): Promise<AyahItem[] | null> => {
+    const surahDef = SURAHS.find((x) => x.n === s);
+    if (!surahDef || st < 1 || en < st || en > surahDef.c) {
+      toast.error(`Invalid range.`);
+      return null;
     }
     setLoading(true);
     setPlayingIdx(null);
     try {
-      const res = await fetch(
-        `/api/surah/${surahNum}?start=${start}&end=${end}&reciter=${reciter}`,
-      );
+      const res = await fetch(`/api/surah/${s}?start=${st}&end=${en}&reciter=${rec}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setAyahs(data.ayahs);
+      return data.ayahs as AyahItem[];
     } catch (e) {
       toast.error(`Failed to load: ${(e as Error).message}`);
+      return null;
     } finally {
       setLoading(false);
     }
   };
+
+  const fetchAyahs = () => fetchAyahsWith(surahNum, start, end, reciter);
 
   const playIdx = (idx: number) => {
     audioRefs.current.forEach((a, i) => {
@@ -279,6 +287,8 @@ function Index() {
     setNowDur(Number.isFinite(el.duration) ? el.duration : 0);
     el.play();
     setPlayingIdx(idx);
+    const a = ayahs[idx];
+    if (a) saveResume(surahNum, a.ayah, reciter, start, end);
   };
 
   const togglePlay = (idx: number) => {
