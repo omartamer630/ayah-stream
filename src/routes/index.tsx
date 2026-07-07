@@ -743,6 +743,62 @@ function Index() {
           </div>
         </section>
 
+        {/* Bookmarks strip */}
+        {hydrated && bookmarks.length > 0 && (
+          <section className="mb-10">
+            <div className="flex items-center gap-3 mb-3">
+              <h3 className="text-[10px] font-bold uppercase tracking-[0.25em] text-muted-foreground flex items-center gap-1.5">
+                <BookmarkCheck className="w-3.5 h-3.5 text-[var(--gold)]" />
+                {t("Bookmarks", "الإشارات المرجعية")}
+              </h3>
+              <div className="flex-1 h-px bg-border" />
+              <span className="text-[10px] text-muted-foreground tabular-nums">
+                <bdi>{num(bookmarks.length)}</bdi>
+              </span>
+            </div>
+            <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
+              {bookmarks.map((b) => {
+                const bSurah = SURAHS.find((s) => s.n === b.surah);
+                if (!bSurah) return null;
+                return (
+                  <div
+                    key={b.id}
+                    className="group shrink-0 bg-card border border-border rounded-xl p-3 min-w-[180px] max-w-[220px] hover:border-[var(--gold)]/40 transition-colors flex items-center gap-3"
+                  >
+                    <button
+                      onClick={() => jumpTo(b.surah, b.ayah, b.reciter)}
+                      className="w-9 h-9 rounded-full bg-secondary hover:bg-[var(--gold)] hover:text-[var(--gold-foreground)] flex items-center justify-center transition-colors shrink-0"
+                      aria-label={t("Play bookmark", "تشغيل الإشارة")}
+                    >
+                      <Play className="w-4 h-4 ml-0.5" fill="currentColor" />
+                    </button>
+                    <div className="flex-1 min-w-0">
+                      <div
+                        className="text-sm font-semibold text-foreground truncate"
+                        style={{ fontFamily: isAr ? "var(--font-arabic)" : undefined }}
+                      >
+                        {isAr ? bSurah.ar : bSurah.a}
+                      </div>
+                      <div className="text-[10px] text-muted-foreground tabular-nums">
+                        <bdi>{t("Ayah", "آية")} {num(b.ayah)}</bdi>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => toggleBookmark(b.surah, b.ayah, b.reciter)}
+                      aria-label={t("Remove bookmark", "إزالة الإشارة")}
+                      className="w-7 h-7 rounded-md flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors opacity-0 group-hover:opacity-100 shrink-0"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+
+
         {ayahs.length > 0 && (
           <>
             {/* Range player banner */}
