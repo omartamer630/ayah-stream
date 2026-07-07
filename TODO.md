@@ -5,6 +5,7 @@ Tracking suggested improvements. Implement top-to-bottom.
 ## Done
 - [x] **Continuous Surah Player** — sticky now-playing bar with prev/next, in-ayah progress, "Play full" button, auto-scroll to current ayah.
 - [x] **Bookmarks & Resume** — remember last played surah/ayah; one-tap resume banner on the homepage + bookmark toggle per ayah + horizontal bookmarks strip.
+- [x] **Memorization / Hifz mode** — select ayah range, choose repeat count, loops range N times then auto-advances to the next same-size range.
 
 ## High-impact UX
 - [ ] **Translation + transliteration toggle** — show English/Urdu translation and Latin transliteration under each ayah (Quran.com API).
