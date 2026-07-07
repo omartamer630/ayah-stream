@@ -379,6 +379,47 @@ function Index() {
 
 
   const handleEnded = (idx: number) => {
+    // Memorization mode takes precedence
+    if (memMode && ayahs.length > 0) {
+      const cur = ayahs[idx];
+      if (cur) {
+        // If we are still inside the current range, advance ayah-by-ayah
+        if (cur.ayah < memTo) {
+          const nextIdx = ayahs.findIndex((a) => a.ayah === cur.ayah + 1);
+          if (nextIdx >= 0) {
+            playIdx(nextIdx);
+            return;
+          }
+        }
+        // End of range reached — repeat or advance
+        if (memCurrentRep < memRepeats) {
+          setMemCurrentRep((n) => n + 1);
+          const startIdx = ayahs.findIndex((a) => a.ayah === memFrom);
+          if (startIdx >= 0) {
+            playIdx(startIdx);
+            return;
+          }
+        }
+        // Advance to next range of the same size
+        const size = memTo - memFrom + 1;
+        const nextFrom = memTo + 1;
+        const nextTo = Math.min(nextFrom + size - 1, ayahs[ayahs.length - 1].ayah);
+        const nextIdx = ayahs.findIndex((a) => a.ayah === nextFrom);
+        if (nextIdx >= 0 && nextFrom <= ayahs[ayahs.length - 1].ayah) {
+          setMemFrom(nextFrom);
+          setMemTo(nextTo);
+          setMemCurrentRep(1);
+          playIdx(nextIdx);
+          return;
+        }
+        // Nothing left
+        toast.success(t("Memorization session complete", "اكتملت جلسة الحفظ"));
+        setPlayingIdx(null);
+        setMemCurrentRep(1);
+        return;
+      }
+    }
+
     if (playMode === "one") {
       const el = audioRefs.current[idx];
       if (el) {
