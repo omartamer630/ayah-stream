@@ -34,6 +34,23 @@ interface AyahItem {
   text?: string;
 }
 
+interface ResumeState {
+  surah: number;
+  ayah: number;
+  reciter: ReciterId;
+  start: number;
+  end: number;
+  at: number;
+}
+
+interface BookmarkItem {
+  id: string; // `${surah}-${ayah}-${reciter}`
+  surah: number;
+  ayah: number;
+  reciter: ReciterId;
+  savedAt: number;
+}
+
 function Index() {
   const [surahNum, setSurahNum] = useState<number>(1);
   const [start, setStart] = useState<number>(1);
