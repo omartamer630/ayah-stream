@@ -69,6 +69,9 @@ function Index() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [nowTime, setNowTime] = useState(0);
   const [nowDur, setNowDur] = useState(0);
+  const [resume, setResume] = useState<ResumeState | null>(null);
+  const [bookmarks, setBookmarks] = useState<BookmarkItem[]>([]);
+  const [pendingPlayAyah, setPendingPlayAyah] = useState<number | null>(null);
 
 
   // Theme: hydrate + persist
