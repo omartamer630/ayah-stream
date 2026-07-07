@@ -158,8 +158,41 @@ function Index() {
         })),
       );
     } catch {}
+    try {
+      const rawResume = localStorage.getItem("quran-resume");
+      if (rawResume) setResume(JSON.parse(rawResume));
+      const rawBm = localStorage.getItem("quran-bookmarks");
+      if (rawBm) setBookmarks(JSON.parse(rawBm));
+    } catch {}
     setHydrated(true);
   }, []);
+
+  const saveResume = (surahN: number, ayahN: number, rec: ReciterId, st: number, en: number) => {
+    const r: ResumeState = { surah: surahN, ayah: ayahN, reciter: rec, start: st, end: en, at: Date.now() };
+    setResume(r);
+    try { localStorage.setItem("quran-resume", JSON.stringify(r)); } catch {}
+  };
+
+  const clearResume = () => {
+    setResume(null);
+    try { localStorage.removeItem("quran-resume"); } catch {}
+  };
+
+  const bookmarkId = (s: number, a: number, r: ReciterId) => `${s}-${a}-${r}`;
+  const isBookmarked = (s: number, a: number, r: ReciterId) =>
+    bookmarks.some((b) => b.id === bookmarkId(s, a, r));
+
+  const toggleBookmark = (s: number, a: number, r: ReciterId) => {
+    const id = bookmarkId(s, a, r);
+    setBookmarks((prev) => {
+      const exists = prev.some((b) => b.id === id);
+      const next = exists
+        ? prev.filter((b) => b.id !== id)
+        : [{ id, surah: s, ayah: a, reciter: r, savedAt: Date.now() }, ...prev];
+      try { localStorage.setItem("quran-bookmarks", JSON.stringify(next)); } catch {}
+      return next;
+    });
+  };
 
   // Persist selections
   useEffect(() => {
