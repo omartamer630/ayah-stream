@@ -920,42 +920,43 @@ function Index() {
                         />
                       </div>
 
-                      <div className="flex flex-col items-end gap-1 shrink-0">
-                        <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-white/50">
-                          {t("Repeat mode", "وضع التكرار")}
-                        </span>
-                        <div className="flex bg-white/5 p-1 rounded-xl">
-                          {(
-                            [
-                              { v: "off", label: t("Stop", "قف") },
-                              { v: "next", label: t("Next", "التالي") },
-                              { v: "one", label: t("Repeat", "أعد") },
-                              { v: "all", label: t("Loop", "كرر") },
-                            ] as const
-                          ).map((opt) => (
-                            <button
-                              key={opt.v}
-                              onClick={() => setPlayMode(opt.v)}
-                              title={
-                                opt.v === "off"
-                                  ? t("Stop after this ayah", "قف بعد هذه الآية")
-                                  : opt.v === "next"
-                                    ? t("Play the next ayah", "شغّل الآية التالية")
-                                    : opt.v === "one"
-                                      ? t("Repeat this ayah", "كرّر هذه الآية")
-                                      : t("Loop the whole range", "كرّر النطاق كله")
-                              }
-                              className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-tighter transition-colors ${
-                                playMode === opt.v
-                                  ? "bg-white/15 text-white"
-                                  : "text-white/50 hover:text-white"
-                              }`}
-                            >
-                              {opt.label}
-                            </button>
-                          ))}
+                      <div className="flex items-center gap-2 shrink-0">
+                        <div className="flex flex-col items-end gap-1">
+                          <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-white/50">
+                            {t("Repeat mode", "وضع التكرار")}
+                          </span>
+                          <div className="flex bg-white/5 p-1 rounded-xl">
+                            {(
+                              [
+                                { v: "off", label: t("Stop", "قف") },
+                                { v: "next", label: t("Next", "التالي") },
+                                { v: "one", label: t("Repeat", "أعد") },
+                                { v: "all", label: t("Loop", "كرر") },
+                              ] as const
+                            ).map((opt) => (
+                              <button
+                                key={opt.v}
+                                onClick={() => setPlayMode(opt.v)}
+                                title={
+                                  opt.v === "off"
+                                    ? t("Stop after this ayah", "قف بعد هذه الآية")
+                                    : opt.v === "next"
+                                      ? t("Play the next ayah", "شغّل الآية التالية")
+                                      : opt.v === "one"
+                                        ? t("Repeat this ayah", "كرّر هذه الآية")
+                                        : t("Loop the whole range", "كرّر النطاق كله")
+                                }
+                                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-tighter transition-colors ${
+                                  playMode === opt.v
+                                    ? "bg-white/15 text-white"
+                                    : "text-white/50 hover:text-white"
+                                }`}
+                              >
+                                {opt.label}
+                              </button>
+                            ))}
+                          </div>
                         </div>
-                      </div>
                         <a
                           href={`${mergedSrc}&download=1`}
                           className="w-10 h-10 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/70 hover:text-white transition-colors"
