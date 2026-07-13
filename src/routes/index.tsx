@@ -85,6 +85,7 @@ function Index() {
   const [memTo, setMemTo] = useState(1);
   const [memRepeats, setMemRepeats] = useState(3);
   const [memCurrentRep, setMemCurrentRep] = useState(1);
+  const [helpOpen, setHelpOpen] = useState(false);
 
 
   // Theme: hydrate + persist
