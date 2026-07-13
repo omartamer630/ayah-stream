@@ -431,6 +431,9 @@ function Index() {
       } else if (e.key === "ArrowRight") {
         e.preventDefault();
         playNext();
+      } else if (e.key === "?" || (e.key === "/" && e.shiftKey)) {
+        e.preventDefault();
+        setHelpOpen((v) => !v);
       }
     };
 
