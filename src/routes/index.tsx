@@ -793,6 +793,60 @@ function Index() {
                 </SelectContent>
               </Select>
             </div>
+
+            <div className="md:col-span-12 space-y-2.5">
+              <div className="flex justify-between items-end">
+                <Label className="block text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
+                  {t("Ayah range", "نطاق الآيات")}
+                </Label>
+                <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground tabular-nums">
+                  {isAr ? (
+                    <><bdi>{num(end - start + 1)}</bdi> {"من"} <bdi>{num(surah.c)}</bdi></>
+                  ) : (
+                    <><bdi>{end - start + 1}</bdi> of <bdi>{surah.c}</bdi></>
+                  )}
+                </span>
+              </div>
+              <div className="flex items-stretch bg-card border border-border rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-[var(--gold)]">
+                <div className="flex items-center gap-2 pl-4 pr-2 shrink-0">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
+                    {t("From", "من")}
+                  </span>
+                </div>
+                <Input
+                  type="number"
+                  min={1}
+                  max={surah.c}
+                  value={start}
+                  onChange={(e) => setStart(Number(e.target.value))}
+                  className="h-12 flex-1 min-w-0 bg-transparent border-0 rounded-none tabular-nums text-center focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none"
+                />
+                <div className="flex items-center px-2">
+                  <span className="w-6 h-px bg-border" />
+                </div>
+                <div className="flex items-center gap-2 pl-2 pr-2 shrink-0">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
+                    {t("To", "إلى")}
+                  </span>
+                </div>
+                <Input
+                  type="number"
+                  min={start}
+                  max={surah.c}
+                  value={end}
+                  onChange={(e) => setEnd(Number(e.target.value))}
+                  className="h-12 flex-1 min-w-0 bg-transparent border-0 rounded-none tabular-nums text-center focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => { setStart(1); setEnd(surah.c); }}
+                  className="px-4 shrink-0 text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors border-l border-border"
+                  title={t("Select all ayahs", "اختر كل الآيات")}
+                >
+                  {t("All", "الكل")}
+                </button>
+              </div>
+            </div>
           </div>
 
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-5 pt-6 border-t border-border">
