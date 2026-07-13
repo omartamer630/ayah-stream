@@ -35,7 +35,7 @@ Tracking suggested improvements. Implement top-to-bottom.
 - [ ] **Tafsir** drawer (Ibn Kathir / Saadi) per ayah.
 
 ## Polish
-- [ ] **Keyboard shortcuts on main player** (←/→ ayah, Space play/pause).
+- [x] **Keyboard shortcuts on main player** — S/N/R/L set repeat mode, ←/→ change ayah.
 - [ ] **Share ayah** — generates an image card with ayah text + reference.
 - [ ] **SEO** — per-surah routes (`/surah/al-fatiha`) with proper meta + JSON-LD.
 - [ ] **Privacy-friendly analytics** (Plausible) to see popular reciters/surahs.
