@@ -569,6 +569,16 @@ function Index() {
               <Moon className="w-4 h-4" />
             )}
           </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setHelpOpen(true)}
+            aria-label={t("Keyboard shortcuts", "اختصارات لوحة المفاتيح")}
+            title={t("Keyboard shortcuts (press ?)", "اختصارات لوحة المفاتيح (اضغط ?)")}
+            className="rounded-full border-border/60"
+          >
+            <Keyboard className="w-4 h-4" />
+          </Button>
         </div>
       </header>
 
