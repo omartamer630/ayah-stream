@@ -977,6 +977,9 @@ function Index() {
                         <div className="flex flex-col items-end gap-1">
                           <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-white/50">
                             {t("Repeat mode", "وضع التكرار")}
+                            <span className="ml-1.5 opacity-70 normal-case tracking-normal">
+                              S · N · R · L
+                            </span>
                           </span>
                           <div className="flex bg-white/5 p-1 rounded-xl">
                             {(
