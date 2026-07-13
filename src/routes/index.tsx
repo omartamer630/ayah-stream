@@ -671,7 +671,7 @@ function Index() {
         <section className="relative bg-secondary border border-border rounded-3xl p-6 md:p-8 shadow-[var(--shadow-soft)] mb-10">
 
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mb-8">
-            <div className="md:col-span-5 space-y-2.5">
+            <div className="md:col-span-7 space-y-2.5">
               <div className="flex justify-between items-end">
                 <Label className="block text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
                   {t("Surah", "السورة")}
