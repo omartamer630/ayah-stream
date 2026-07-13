@@ -1,6 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Download, Pause, Play, Loader2, Package, Star, BookOpenText, Moon, Sun, Languages, SkipBack, SkipForward, Bookmark, BookmarkCheck, RotateCcw, X, GraduationCap, Repeat } from "lucide-react";
+import { Download, Pause, Play, Loader2, Package, Star, BookOpenText, Moon, Sun, Languages, SkipBack, SkipForward, Bookmark, BookmarkCheck, RotateCcw, X, GraduationCap, Repeat, Keyboard } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { SURAHS, RECITERS, ayahAudioUrl, type ReciterId } from "@/lib/quran";
 import { Button } from "@/components/ui/button";
 import {
@@ -78,6 +85,7 @@ function Index() {
   const [memTo, setMemTo] = useState(1);
   const [memRepeats, setMemRepeats] = useState(3);
   const [memCurrentRep, setMemCurrentRep] = useState(1);
+  const [helpOpen, setHelpOpen] = useState(false);
 
 
   // Theme: hydrate + persist
@@ -423,6 +431,9 @@ function Index() {
       } else if (e.key === "ArrowRight") {
         e.preventDefault();
         playNext();
+      } else if (e.key === "?" || (e.key === "/" && e.shiftKey)) {
+        e.preventDefault();
+        setHelpOpen((v) => !v);
       }
     };
 
@@ -558,6 +569,16 @@ function Index() {
               <Moon className="w-4 h-4" />
             )}
           </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setHelpOpen(true)}
+            aria-label={t("Keyboard shortcuts", "اختصارات لوحة المفاتيح")}
+            title={t("Keyboard shortcuts (press ?)", "اختصارات لوحة المفاتيح (اضغط ?)")}
+            className="rounded-full border-border/60"
+          >
+            <Keyboard className="w-4 h-4" />
+          </Button>
         </div>
       </header>
 
@@ -650,7 +671,7 @@ function Index() {
         <section className="relative bg-secondary border border-border rounded-3xl p-6 md:p-8 shadow-[var(--shadow-soft)] mb-10">
 
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mb-8">
-            <div className="md:col-span-5 space-y-2.5">
+            <div className="md:col-span-7 space-y-2.5">
               <div className="flex justify-between items-end">
                 <Label className="block text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
                   {t("Surah", "السورة")}
@@ -717,35 +738,8 @@ function Index() {
               </Select>
             </div>
 
-            <div className="md:col-span-2 space-y-2.5">
-              <Label className="block text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
-                {t("From", "من")}
-              </Label>
-              <Input
-                type="number"
-                min={1}
-                max={surah.c}
-                value={start}
-                onChange={(e) => setStart(Number(e.target.value))}
-                className="h-12 bg-card border-border rounded-xl tabular-nums focus-visible:ring-[var(--gold)]"
-              />
-            </div>
 
-            <div className="md:col-span-2 space-y-2.5">
-              <Label className="block text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
-                {t("To", "إلى")}
-              </Label>
-              <Input
-                type="number"
-                min={start}
-                max={surah.c}
-                value={end}
-                onChange={(e) => setEnd(Number(e.target.value))}
-                className="h-12 bg-card border-border rounded-xl tabular-nums focus-visible:ring-[var(--gold)]"
-              />
-            </div>
-
-            <div className="md:col-span-3 space-y-2.5">
+            <div className="md:col-span-5 space-y-2.5">
               <div className="flex justify-between items-end">
                 <Label className="block text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
                   {t("Reciter", "القارئ")}
@@ -798,6 +792,60 @@ function Index() {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="md:col-span-12 space-y-2.5">
+              <div className="flex justify-between items-end">
+                <Label className="block text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
+                  {t("Ayah range", "نطاق الآيات")}
+                </Label>
+                <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground tabular-nums">
+                  {isAr ? (
+                    <><bdi>{num(end - start + 1)}</bdi> {"من"} <bdi>{num(surah.c)}</bdi></>
+                  ) : (
+                    <><bdi>{end - start + 1}</bdi> of <bdi>{surah.c}</bdi></>
+                  )}
+                </span>
+              </div>
+              <div className="flex items-stretch bg-card border border-border rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-[var(--gold)]">
+                <div className="flex items-center gap-2 pl-4 pr-2 shrink-0">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
+                    {t("From", "من")}
+                  </span>
+                </div>
+                <Input
+                  type="number"
+                  min={1}
+                  max={surah.c}
+                  value={start}
+                  onChange={(e) => setStart(Number(e.target.value))}
+                  className="h-12 flex-1 min-w-0 bg-transparent border-0 rounded-none tabular-nums text-center focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none"
+                />
+                <div className="flex items-center px-2">
+                  <span className="w-6 h-px bg-border" />
+                </div>
+                <div className="flex items-center gap-2 pl-2 pr-2 shrink-0">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
+                    {t("To", "إلى")}
+                  </span>
+                </div>
+                <Input
+                  type="number"
+                  min={start}
+                  max={surah.c}
+                  value={end}
+                  onChange={(e) => setEnd(Number(e.target.value))}
+                  className="h-12 flex-1 min-w-0 bg-transparent border-0 rounded-none tabular-nums text-center focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => { setStart(1); setEnd(surah.c); }}
+                  className="px-4 shrink-0 text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors border-l border-border"
+                  title={t("Select all ayahs", "اختر كل الآيات")}
+                >
+                  {t("All", "الكل")}
+                </button>
+              </div>
             </div>
           </div>
 
@@ -1389,6 +1437,51 @@ function Index() {
         </footer>
 
       </main>
+
+      <Dialog open={helpOpen} onOpenChange={setHelpOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Keyboard className="w-5 h-5 text-[var(--gold)]" />
+              {t("Keyboard shortcuts", "اختصارات لوحة المفاتيح")}
+            </DialogTitle>
+            <DialogDescription>
+              {t(
+                "Control playback and navigation without touching the mouse.",
+                "تحكّم في التشغيل والتنقل دون استخدام الفأرة.",
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-2 divide-y divide-border">
+            {[
+              { keys: ["S"], label: t("Stop after this ayah", "إيقاف بعد هذه الآية") },
+              { keys: ["N"], label: t("Play next ayah", "الآية التالية") },
+              { keys: ["R"], label: t("Repeat current ayah", "إعادة الآية الحالية") },
+              { keys: ["L"], label: t("Loop the range", "تكرار النطاق") },
+              { keys: ["←"], label: t("Previous ayah", "الآية السابقة") },
+              { keys: ["→"], label: t("Next ayah", "الآية التالية") },
+              { keys: ["?"], label: t("Show this help", "إظهار هذه المساعدة") },
+            ].map((row) => (
+              <div key={row.label} className="flex items-center justify-between py-2.5">
+                <span className="text-sm text-foreground">{row.label}</span>
+                <div className="flex gap-1">
+                  {row.keys.map((k) => (
+                    <kbd
+                      key={k}
+                      className="inline-flex items-center justify-center min-w-8 h-7 px-2 rounded-md border border-border bg-secondary text-xs font-bold tabular-nums text-foreground shadow-sm"
+                    >
+                      {k}
+                    </kbd>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+          <p className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground mt-2">
+            {t("Shortcuts pause when typing in a field.", "تتوقف الاختصارات عند الكتابة في حقل.")}
+          </p>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
