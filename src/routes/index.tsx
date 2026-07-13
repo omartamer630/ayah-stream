@@ -1437,6 +1437,51 @@ function Index() {
         </footer>
 
       </main>
+
+      <Dialog open={helpOpen} onOpenChange={setHelpOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Keyboard className="w-5 h-5 text-[var(--gold)]" />
+              {t("Keyboard shortcuts", "اختصارات لوحة المفاتيح")}
+            </DialogTitle>
+            <DialogDescription>
+              {t(
+                "Control playback and navigation without touching the mouse.",
+                "تحكّم في التشغيل والتنقل دون استخدام الفأرة.",
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-2 divide-y divide-border">
+            {[
+              { keys: ["S"], label: t("Stop after this ayah", "إيقاف بعد هذه الآية") },
+              { keys: ["N"], label: t("Play next ayah", "الآية التالية") },
+              { keys: ["R"], label: t("Repeat current ayah", "إعادة الآية الحالية") },
+              { keys: ["L"], label: t("Loop the range", "تكرار النطاق") },
+              { keys: ["←"], label: t("Previous ayah", "الآية السابقة") },
+              { keys: ["→"], label: t("Next ayah", "الآية التالية") },
+              { keys: ["?"], label: t("Show this help", "إظهار هذه المساعدة") },
+            ].map((row) => (
+              <div key={row.label} className="flex items-center justify-between py-2.5">
+                <span className="text-sm text-foreground">{row.label}</span>
+                <div className="flex gap-1">
+                  {row.keys.map((k) => (
+                    <kbd
+                      key={k}
+                      className="inline-flex items-center justify-center min-w-8 h-7 px-2 rounded-md border border-border bg-secondary text-xs font-bold tabular-nums text-foreground shadow-sm"
+                    >
+                      {k}
+                    </kbd>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+          <p className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground mt-2">
+            {t("Shortcuts pause when typing in a field.", "تتوقف الاختصارات عند الكتابة في حقل.")}
+          </p>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
