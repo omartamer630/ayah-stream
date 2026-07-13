@@ -738,33 +738,6 @@ function Index() {
               </Select>
             </div>
 
-            <div className="md:col-span-2 space-y-2.5">
-              <Label className="block text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
-                {t("From", "من")}
-              </Label>
-              <Input
-                type="number"
-                min={1}
-                max={surah.c}
-                value={start}
-                onChange={(e) => setStart(Number(e.target.value))}
-                className="h-12 bg-card border-border rounded-xl tabular-nums focus-visible:ring-[var(--gold)]"
-              />
-            </div>
-
-            <div className="md:col-span-2 space-y-2.5">
-              <Label className="block text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
-                {t("To", "إلى")}
-              </Label>
-              <Input
-                type="number"
-                min={start}
-                max={surah.c}
-                value={end}
-                onChange={(e) => setEnd(Number(e.target.value))}
-                className="h-12 bg-card border-border rounded-xl tabular-nums focus-visible:ring-[var(--gold)]"
-              />
-            </div>
 
             <div className="md:col-span-3 space-y-2.5">
               <div className="flex justify-between items-end">
