@@ -377,6 +377,59 @@ function Index() {
     setMemCurrentRep(1);
   }, [ayahs]);
 
+  // Keyboard shortcuts for playback modes and navigation
+  useEffect(() => {
+    const isTyping = (target: EventTarget | null) => {
+      if (!(target instanceof HTMLElement)) return false;
+      return (
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.tagName === "SELECT" ||
+        target.isContentEditable
+      );
+    };
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      if (isTyping(e.target)) return;
+
+      switch (e.key.toLowerCase()) {
+        case "s":
+          e.preventDefault();
+          setPlayMode("off");
+          toast.info(t("Repeat mode: Stop", "وضع التكرار: إيقاف"));
+          break;
+        case "n":
+          e.preventDefault();
+          setPlayMode("next");
+          toast.info(t("Repeat mode: Next", "وضع التكرار: التالي"));
+          break;
+        case "r":
+          e.preventDefault();
+          setPlayMode("one");
+          toast.info(t("Repeat mode: Repeat", "وضع التكرار: إعادة"));
+          break;
+        case "l":
+          e.preventDefault();
+          setPlayMode("all");
+          toast.info(t("Repeat mode: Loop", "وضع التكرار: كرر"));
+          break;
+      }
+
+      // Arrow keys: navigate ayahs (no toast, just act)
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        playPrev();
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        playNext();
+      }
+    };
+
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [t]);
+
 
   const handleEnded = (idx: number) => {
     // Memorization mode takes precedence
@@ -924,6 +977,9 @@ function Index() {
                         <div className="flex flex-col items-end gap-1">
                           <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-white/50">
                             {t("Repeat mode", "وضع التكرار")}
+                            <span className="ml-1.5 opacity-70 normal-case tracking-normal">
+                              S · N · R · L
+                            </span>
                           </span>
                           <div className="flex bg-white/5 p-1 rounded-xl">
                             {(
